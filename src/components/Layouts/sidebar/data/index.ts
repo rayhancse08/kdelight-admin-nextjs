@@ -43,8 +43,8 @@ export const NAV_DATA = [
       // },
 
       {
-        title: "Stores",
-        url: "/tables",
+        title: "Products",
+        url: "/products",
         icon: Icons.Table,
         items: [],
       },
