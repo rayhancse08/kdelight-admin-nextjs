@@ -6,9 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="3dc41c91-c752-4fdf-8cf9-ac2a71f3046b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/next.config.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.mjs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Layouts/sidebar/data/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Layouts/sidebar/data/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Tables/top-products/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Tables/top-products/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/products/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/products/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Layouts/header/user-info/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Layouts/header/user-info/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Products/ProductTable.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Products/ProductTable.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,10 +18,10 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="JavaScript File" />
         <option value="JSX File" />
         <option value="TypeScript File" />
         <option value="TypeScript JSX File" />
+        <option value="JavaScript File" />
       </list>
     </option>
   </component>
@@ -39,7 +39,13 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "master",
+    "js.debugger.nextJs.config.created.client": "true",
+    "js.debugger.nextJs.config.created.server": "true",
+    "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "//wsl.localhost/Ubuntu-22.04/home/rayhan/kdelight-admin-nextjs",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -47,6 +53,7 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "prettierjs.PrettierConfiguration.Package": "\\\\wsl.localhost\\Ubuntu-22.04\\home\\rayhan\\kdelight-admin-nextjs\\node_modules\\prettier",
+    "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -55,10 +62,25 @@
       <recent name="\\wsl.localhost\Ubuntu-22.04\home\rayhan\kdelight-admin-nextjs\public\images" />
     </key>
   </component>
+  <component name="RunManager" selected="npm.Next.js: server-side">
+    <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
+      <method v="2" />
+    </configuration>
+    <configuration name="Next.js: server-side" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-WS-242.23726.96" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-WS-253.30387.83" />
       </set>
     </attachedChunks>
   </component>
@@ -73,6 +95,7 @@
       <workItem from="1754198202292" duration="8357000" />
       <workItem from="1754230779072" duration="243000" />
       <workItem from="1754818768322" duration="6562000" />
+      <workItem from="1772694883487" duration="9034000" />
     </task>
     <servers />
   </component>

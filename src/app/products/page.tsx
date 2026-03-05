@@ -1,30 +1,35 @@
+"use client";
+
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import { InvoiceTable } from "@/components/Tables/invoice-table";
 import ProductTable from "@/components/Products/ProductTable";
-import React, { Suspense } from "react";
-import { getTopProducts } from "@/lib/getProducts";
+import React, { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 
-import { Metadata } from "next";
+export default function ProductPage() {
+  const [products, setProducts] = useState([]);
 
-export const metadata: Metadata = {
-  title: "Tables",
-};
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const data = await apiFetch("https://kdelight.info/api/products/");
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to load products:", error);
+      }
+    }
 
-const ProductPage = async () => {
-  const data = await getTopProducts();
+    loadProducts();
+  }, []);
+
+  console.log(products);
 
   return (
     <>
       <Breadcrumb pageName="Products" />
 
       <div className="space-y-10">
-
-
-        <ProductTable products={data} />
-
+        <ProductTable products={products} />
       </div>
     </>
   );
-};
-
-export default ProductPage;
+}
