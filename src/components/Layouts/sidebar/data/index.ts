@@ -51,7 +51,7 @@ export const NAV_DATA = [
 
       {
         title: "Sales Orders",
-        url: "/tables",
+        url: "/sales",
         icon: Icons.Table,
         items: [],
       },
