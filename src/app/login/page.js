@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/lib/auth";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth(); // ✅ from context
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,14 +19,17 @@ export default function LoginPage() {
     try {
       const data = await loginUser(email, password);
 
-      // store tokens
+      // ✅ store tokens
       localStorage.setItem("access", data.access);
       localStorage.setItem("refresh", data.refresh);
-      localStorage.setItem("user", JSON.stringify(data.user));
 
-      router.push("/");
+      // ✅ update global auth state
+      login(data.user);
+
+      // ✅ redirect after login
+      router.replace("/");
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || "Login failed");
     }
   };
 
@@ -58,7 +63,10 @@ export default function LoginPage() {
           required
         />
 
-        <button className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700">
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700"
+        >
           Login
         </button>
       </form>

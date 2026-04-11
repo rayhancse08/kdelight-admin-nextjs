@@ -12,30 +12,26 @@ import { useSidebarContext } from "./sidebar-context";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
+  const { setIsOpen, isOpen, isMobile, toggleSidebar } =
+    useSidebarContext();
+
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   const toggleExpanded = (title: string) => {
-    setExpandedItems((prev) => (prev.includes(title) ? [] : [title]));
-
-    // Uncomment the following line to enable multiple expanded items
-    // setExpandedItems((prev) =>
-    //   prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title],
-    // );
+    setExpandedItems((prev) =>
+      prev.includes(title) ? [] : [title]
+    );
   };
 
+  // ✅ FIXED (no more "never" error)
   useEffect(() => {
-    // Keep collapsible open, when it's subpage is active
-    NAV_DATA.some((section) => {
-      return section.items.some((item) => {
-        return item.items.some((subItem) => {
+    NAV_DATA.forEach((section) => {
+      section.items.forEach((item) => {
+        item.items?.forEach((subItem) => {
           if (subItem.url === pathname) {
             if (!expandedItems.includes(item.title)) {
               toggleExpanded(item.title);
             }
-
-            // Break the loop
-            return true;
           }
         });
       });
@@ -47,28 +43,26 @@ export function Sidebar() {
       {/* Mobile Overlay */}
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300"
+          className="fixed inset-0 z-40 bg-black/50"
           onClick={() => setIsOpen(false)}
-          aria-hidden="true"
         />
       )}
 
       <aside
         className={cn(
-          "max-w-[290px] overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark",
-          isMobile ? "fixed bottom-0 top-0 z-50" : "sticky top-0 h-screen",
-          isOpen ? "w-full" : "w-0",
+          "max-w-[290px] overflow-hidden border-r bg-white transition-all",
+          isMobile
+            ? "fixed top-0 bottom-0 z-50"
+            : "sticky top-0 h-screen",
+          isOpen ? "w-full" : "w-0"
         )}
-        aria-label="Main navigation"
-        aria-hidden={!isOpen}
-        inert={!isOpen}
       >
         <div className="flex h-full flex-col py-10 pl-[25px] pr-[7px]">
+          {/* Logo */}
           <div className="relative pr-4.5">
             <Link
-              href={"/"}
+              href="/"
               onClick={() => isMobile && toggleSidebar()}
-              className="px-0 py-2.5 min-[850px]:py-0"
             >
               <Logo />
             </Link>
@@ -76,100 +70,91 @@ export function Sidebar() {
             {isMobile && (
               <button
                 onClick={toggleSidebar}
-                className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
+                className="absolute right-4 top-1/2 -translate-y-1/2"
               >
-                <span className="sr-only">Close Menu</span>
-
-                <ArrowLeftIcon className="ml-auto size-7" />
+                <ArrowLeftIcon className="size-7" />
               </button>
             )}
           </div>
 
           {/* Navigation */}
-          <div className="custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10">
+          <div className="mt-6 flex-1 overflow-y-auto pr-3">
             {NAV_DATA.map((section) => (
               <div key={section.label} className="mb-6">
-                <h2 className="mb-5 text-sm font-medium text-dark-4 dark:text-dark-6">
+                <h2 className="mb-5 text-sm font-medium">
                   {section.label}
                 </h2>
 
-                <nav role="navigation" aria-label={section.label}>
-                  <ul className="space-y-2">
-                    {section.items.map((item) => (
-                      <li key={item.title}>
-                        {item.items.length ? (
-                          <div>
-                            <MenuItem
-                              isActive={item.items.some(
-                                ({ url }) => url === pathname,
-                              )}
-                              onClick={() => toggleExpanded(item.title)}
-                            >
-                              <item.icon
-                                className="size-6 shrink-0"
-                                aria-hidden="true"
-                              />
+                <ul className="space-y-2">
+                  {section.items.map((item) => {
+                    const hasChildren =
+                      item.items && item.items.length > 0;
 
+                    return (
+                      <li key={item.title}>
+                        {hasChildren ? (
+                          <>
+                            <MenuItem
+                              isActive={item.items!.some(
+                                (sub) => sub.url === pathname
+                              )}
+                              onClick={() =>
+                                toggleExpanded(item.title)
+                              }
+                            >
+                              <item.icon className="size-6" />
                               <span>{item.title}</span>
 
                               <ChevronUp
                                 className={cn(
-                                  "ml-auto rotate-180 transition-transform duration-200",
-                                  expandedItems.includes(item.title) &&
-                                    "rotate-0",
+                                  "ml-auto rotate-180 transition-transform",
+                                  expandedItems.includes(
+                                    item.title
+                                  ) && "rotate-0"
                                 )}
-                                aria-hidden="true"
                               />
                             </MenuItem>
 
-                            {expandedItems.includes(item.title) && (
-                              <ul
-                                className="ml-9 mr-0 space-y-1.5 pb-[15px] pr-0 pt-2"
-                                role="menu"
-                              >
-                                {item.items.map((subItem) => (
-                                  <li key={subItem.title} role="none">
+                            {expandedItems.includes(
+                              item.title
+                            ) && (
+                              <ul className="ml-9 space-y-1.5 pt-2 pb-3">
+                                {item.items!.map((subItem) => (
+                                  <li key={subItem.title}>
                                     <MenuItem
                                       as="link"
                                       href={subItem.url}
-                                      isActive={pathname === subItem.url}
+                                      isActive={
+                                        pathname === subItem.url
+                                      }
                                     >
-                                      <span>{subItem.title}</span>
+                                      {subItem.title}
                                     </MenuItem>
                                   </li>
                                 ))}
                               </ul>
                             )}
-                          </div>
+                          </>
                         ) : (
-                          (() => {
-                            const href =
-                              "url" in item
-                                ? item.url + ""
-                                : "/" +
-                                  item.title.toLowerCase().split(" ").join("-");
-
-                            return (
-                              <MenuItem
-                                className="flex items-center gap-3 py-3"
-                                as="link"
-                                href={href}
-                                isActive={pathname === href}
-                              >
-                                <item.icon
-                                  className="size-6 shrink-0"
-                                  aria-hidden="true"
-                                />
-
-                                <span>{item.title}</span>
-                              </MenuItem>
-                            );
-                          })()
+                          <MenuItem
+                            as="link"
+                            href={
+                              item.url ??
+                              "/" +
+                              item.title
+                                .toLowerCase()
+                                .replace(/\s+/g, "-")
+                            }
+                            isActive={pathname === item.url}
+                          >
+                            <item.icon className="size-6" />
+                            <span>{item.title}</span>
+                          </MenuItem>
                         )}
                       </li>
-                    ))}
-                  </ul>
-                </nav>
+                    );
+                  })}
+                </ul>
               </div>
             ))}
           </div>

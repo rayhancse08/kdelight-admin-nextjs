@@ -22,7 +22,7 @@ export default function ProductPage() {
   const loadProducts = async () => {
     try {
       const data = await apiFetch(
-        "https://kdelight.info/api/products/"
+        `${process.env.NEXT_PUBLIC_API_URL}/api/products/`
       );
       setProducts(data);
     } catch (error) {

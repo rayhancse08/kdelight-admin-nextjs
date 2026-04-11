@@ -1,51 +1,21 @@
 "use client";
 
+import React, { useEffect, useState, useCallback } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import SaleTable from "@/components/Sales/SaleTable";
-import SaleModal from "@/components/Sales/SaleModal";
-import React, { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { Sale, SaleDetail, SaleFormData } from "@/types/sale";
+import SaleTable from "@/components/Sales/SaleTable";
+import SaleCreateModal from "@/components/Sales/SaleCreateModal";
+import SaleDetailModal from "@/components/Sales/SaleDetailModal";
 
-export type Sale = {
-  id: number;
-  date: string;
-  delivery_date: string;
-  status: string;
-  store_name: string;
-  sub_total: string;
-  discount: string;
-  total: string;
-  payment: string;
-  payment_due: string;
-};
-
-export type SaleFormData = {
-  date: string;
-  delivery_date: string;
-  billing_company: string;
-  store: string;
-  status: string;
-  shipping_charge: string;
-  discount_type: string;
-  discount_amount: string;
-  sale_items: SaleItemFormData[];
-};
-
-export type SaleItemFormData = {
-  product: string;
-  product_name?: string;
-  quantity: string;
-  price: string;
-  packet_price: string;
-  discount: string;
-};
+const BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 const EMPTY_FORM: SaleFormData = {
-  date: "",
+  date: new Date().toISOString().slice(0, 10),
   delivery_date: "",
   billing_company: "",
   store: "",
-  status: "draft",
+  status: "confirmed",
   shipping_charge: "",
   discount_type: "flat",
   discount_amount: "",
@@ -54,88 +24,144 @@ const EMPTY_FORM: SaleFormData = {
 
 export default function SalesPage() {
   const [sales, setSales] = useState<Sale[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState<SaleFormData>(EMPTY_FORM);
+  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
 
-  const loadSales = async () => {
+  const [createOpen, setCreateOpen] = useState(false);
+  const [formData, setFormData] = useState<SaleFormData>(EMPTY_FORM);
+
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailSale, setDetailSale] = useState<SaleDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadSales = useCallback(async () => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (statusFilter) params.set("status", statusFilter);
+    params.set("page", String(page));
     try {
-      const params = new URLSearchParams();
-      if (search) params.set("search", search);
-      if (statusFilter) params.set("status", statusFilter);
-      const data = await apiFetch(
-        `https://kdelight.info/api/sales/?${params.toString()}`
-      );
+      const data = await apiFetch(`${BASE}/sales/?${params}`);
       setSales(data.results ?? data);
-    } catch (error) {
-      console.error(error);
+      setTotal(data.count ?? data.length);
+    } catch (e) {
+      console.error(e);
     }
+  }, [search, statusFilter, page]);
+
+  useEffect(() => { loadSales(); }, [loadSales]);
+
+  const openDetail = async (id: number) => {
+    setDetailLoading(true);
+    setDetailOpen(true);
+    try {
+      const data = await apiFetch(`${BASE}/sales/${id}/`);
+      setDetailSale(data);
+    } catch (e) { console.error(e); }
+    finally { setDetailLoading(false); }
   };
 
-  useEffect(() => {
-    loadSales();
-  }, [search, statusFilter]);
-
   const handleCreate = async () => {
+    setSaving(true);
+    setError(null);
     try {
-      await apiFetch("https://kdelight.info/api/sales/", {
+      await apiFetch(`${BASE}/sales/`, {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      setIsModalOpen(false);
+      setCreateOpen(false);
       setFormData(EMPTY_FORM);
       loadSales();
-    } catch (err) {
-      console.error("Create failed", err);
-    }
+    } catch (err: any) {
+      setError(err.message ?? "Failed to create sale");
+    } finally { setSaving(false); }
+  };
+
+  const handleStatusChange = async (id: number, status: string) => {
+    try {
+      const updated = await apiFetch(`${BASE}/sales/${id}/status/`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      });
+      setDetailSale(updated);
+      loadSales();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleAddPayment = async (
+    saleId: number, amount: string, date: string
+  ) => {
+    await apiFetch(`${BASE}/payments/`, {
+      method: "POST",
+      body: JSON.stringify({ sale: saleId, amount, date }),
+    });
+    openDetail(saleId); // reload
   };
 
   return (
     <>
-      <Breadcrumb pageName="Sales" />
+      <Breadcrumb pageName="Sales Orders" />
 
       {/* Toolbar */}
-      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3 items-center justify-between mb-6">
+        <div className="flex gap-2 flex-wrap">
           <input
-            placeholder="Search by store or order no..."
-            className="border px-3 py-2 rounded-lg text-sm w-64"
+            className="border px-3 py-2 rounded-lg text-sm w-64 outline-none focus:border-blue-400"
+            placeholder="Search order, store..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
           <select
-            className="border px-3 py-2 rounded-lg text-sm"
+            className="border px-3 py-2 rounded-lg text-sm outline-none"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           >
             <option value="">All Statuses</option>
-            <option value="draft">Draft</option>
             <option value="confirmed">Confirmed</option>
+            <option value="packing">Packing</option>
+            <option value="delivering">Delivering</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
           </select>
         </div>
-
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm"
+          onClick={() => { setFormData(EMPTY_FORM); setCreateOpen(true); }}
+          className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
         >
-          + Add Sale
+          <span className="text-lg leading-none">+</span> New Sale
         </button>
       </div>
 
-      <SaleTable sales={sales} onRefresh={loadSales} />
+      <SaleTable
+        sales={sales}
+        total={total}
+        page={page}
+        onPageChange={setPage}
+        onRowClick={openDetail}
+      />
 
-      {isModalOpen && (
-        <SaleModal
+      {createOpen && (
+        <SaleCreateModal
           formData={formData}
           setFormData={setFormData}
           onSave={handleCreate}
-          onClose={() => {
-            setIsModalOpen(false);
-            setFormData(EMPTY_FORM);
-          }}
+          onClose={() => setCreateOpen(false)}
+          saving={saving}
+          error={error}
+        />
+      )}
+
+      {detailOpen && (
+        <SaleDetailModal
+          sale={detailSale}
+          loading={detailLoading}
+          onClose={() => { setDetailOpen(false); setDetailSale(null); }}
+          onStatusChange={handleStatusChange}
+          onAddPayment={handleAddPayment}
         />
       )}
     </>

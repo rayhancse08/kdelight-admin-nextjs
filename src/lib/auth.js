@@ -1,5 +1,5 @@
 export async function loginUser(email, password) {
-  const res = await fetch("https://kdelight.info/api/login/", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/login/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
