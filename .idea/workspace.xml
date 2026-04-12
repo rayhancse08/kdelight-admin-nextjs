@@ -5,29 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3dc41c91-c752-4fdf-8cf9-ac2a71f3046b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.eslintrc.json_back" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.eslintrc.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/next.config.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.mjs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/(home)/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(home)/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/login/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/login/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/products/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/products/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/sales/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/sales/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/tables/page.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Layouts/header/user-info/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Layouts/header/user-info/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/brands/page.js" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/Layouts/sidebar/data/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Layouts/sidebar/data/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Layouts/sidebar/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Layouts/sidebar/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Sales/SaleModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Sales/SaleModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Sales/SaleTable.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Sales/SaleTable.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Tables/fetch.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Tables/icons.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Tables/invoice-table.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Tables/top-channels/index.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Tables/top-channels/skeleton.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Tables/top-products/index.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Tables/top-products/skeleton.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/auth.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -123,7 +103,7 @@
       <workItem from="1772694883487" duration="9870000" />
       <workItem from="1772889610617" duration="1229000" />
       <workItem from="1773035777406" duration="29000" />
-      <workItem from="1775645425632" duration="23747000" />
+      <workItem from="1775645425632" duration="26204000" />
     </task>
     <servers />
   </component>
