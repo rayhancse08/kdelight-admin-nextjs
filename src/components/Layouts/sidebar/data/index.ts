@@ -64,6 +64,18 @@ export const NAV_DATA: NavSection[] = [
         icon: Icons.Table,
         items: [],
       },
+      {
+        title: "Monthly Tax",
+        url: "/tax",
+        icon: Icons.Table,
+        items: [],
+      },
+      {
+        title: "Monthly Cash In",
+        url: "/cashin",
+        icon: Icons.Table,
+        items: [],
+      },
     ],
   },
 ];

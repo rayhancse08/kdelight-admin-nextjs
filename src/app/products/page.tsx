@@ -37,7 +37,7 @@ export default function ProductPage() {
   /* Handle Create */
   const handleCreate = async () => {
     try {
-      await apiFetch("https://kdelight.info/api/products/", {
+      await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/`, {
         method: "POST",
         body: JSON.stringify(formData),
       });

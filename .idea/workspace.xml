@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="3dc41c91-c752-4fdf-8cf9-ac2a71f3046b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/products/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/products/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/Layouts/sidebar/data/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Layouts/sidebar/data/index.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -18,8 +19,9 @@
       <list>
         <option value="JSX File" />
         <option value="JavaScript File" />
-        <option value="TypeScript File" />
+        <option value="tsconfig.json" />
         <option value="TypeScript JSX File" />
+        <option value="TypeScript File" />
       </list>
     </option>
   </component>
@@ -103,7 +105,7 @@
       <workItem from="1772889610617" duration="1229000" />
       <workItem from="1773035777406" duration="29000" />
       <workItem from="1775645425632" duration="27863000" />
-      <workItem from="1776062627801" duration="2910000" />
+      <workItem from="1776062627801" duration="5296000" />
     </task>
     <servers />
   </component>
