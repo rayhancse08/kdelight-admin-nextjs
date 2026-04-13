@@ -45,6 +45,19 @@ export const NAV_DATA: NavSection[] = [
         icon: Icons.Table,
         items: [],
       },
+
+      {
+        title: "Warehouse",
+        url: "/warehouse",
+        icon: Icons.Table,
+        items: [],
+      },
+      {
+        title: "Report",
+        url: "/report",
+        icon: Icons.Table,
+        items: [],
+      },
     ],
   },
 ];
