@@ -1,45 +1,121 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
+
+/* ---------------- Types ---------------- */
+
+type User = {
+  id?: number;
+  username?: string;
+  email?: string;
+  [key: string]: any;
+};
 
 type AuthContextType = {
-  user: any;
-  login: (data: any) => void;
+  user: User | null;
+  loading: boolean;
+  login: (data: { user: User; access?: string; refresh?: string }) => void;
   logout: () => void;
 };
 
+/* ---------------- Context ---------------- */
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+/* ---------------- Provider ---------------- */
+
+export const AuthProvider = ({
+                               children,
+                             }: {
+  children: React.ReactNode;
+}) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  /* ---------------- Init (on reload) ---------------- */
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
+    try {
+      const storedUser = localStorage.getItem("user");
+      const token = localStorage.getItem("access");
+
+      if (storedUser && token) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (err) {
+      console.error("Auth load error:", err);
+    } finally {
+      setLoading(false); // ✅ critical fix
+    }
   }, []);
 
-  const login = (data: any) => {
-    localStorage.setItem("user", JSON.stringify(data));
-    setUser(data);
+  /* ---------------- Login ---------------- */
+
+  const login = (data: {
+    user: User;
+    access?: string;
+    refresh?: string;
+  }) => {
+    try {
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      if (data.access) {
+        localStorage.setItem("access", data.access);
+      }
+
+      if (data.refresh) {
+        localStorage.setItem("refresh", data.refresh);
+      }
+
+      setUser(data.user);
+    } catch (err) {
+      console.error("Login error:", err);
+    }
   };
+
+  /* ---------------- Logout ---------------- */
 
   const logout = () => {
-    localStorage.clear();
-    setUser(null);
+    try {
+      localStorage.removeItem("user");
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
+
+      setUser(null);
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
   };
 
+  /* ---------------- Provider ---------------- */
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-// ✅ SAFE HOOK
+/* ---------------- Hook ---------------- */
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error("useAuth must be used inside AuthProvider");
   }
+
   return context;
 };
