@@ -58,6 +58,12 @@ export const NAV_DATA: NavSection[] = [
         icon: Icons.Table,
         items: [],
       },
+      {
+        title: "Vendors",
+        url: "/vendors",
+        icon: Icons.Table,
+        items: [],
+      },
     ],
   },
 ];
