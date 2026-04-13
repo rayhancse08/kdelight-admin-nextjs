@@ -31,10 +31,29 @@ export default function SaleCreateModal({
   const [options, setOptions] = useState<ProductOption[][]>([]);
   const timerRefs = useRef<(ReturnType<typeof setTimeout> | null)[]>([]);
 
+  const [storePage, setStorePage] = useState(1);
+  const [billingPage, setBillingPage] = useState(1);
+
   useEffect(() => {
-    apiFetch(`${BASE}/stores/autocomplete/`).then(setStores).catch(console.error);
-    apiFetch(`${BASE}/billing-companies/`).then(setBilling).catch(console.error);
-  }, []);
+    const loadData = async () => {
+      try {
+        const storesRes = await apiFetch(
+          `${BASE}/stores/autocomplete/?page=${storePage}`
+        );
+        setStores(storesRes.results ?? storesRes);
+
+        const billingRes = await apiFetch(
+          `${BASE}/billing-companies/?page=${billingPage}`
+        );
+        setBilling(billingRes.results ?? billingRes);
+
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    loadData();
+  }, [storePage, billingPage]);
 
   const setField = (k: keyof SaleFormData, v: string) =>
     setFormData((p) => ({ ...p, [k]: v }));

@@ -55,9 +55,24 @@ export default function PurchaseCreateModal({
   const [costOpen, setCostOpen] = useState(false);
   const timerRefs = useRef<(ReturnType<typeof setTimeout> | null)[]>([]);
 
+  const [vendorPage, setVendorPage] = useState(1);
+
   useEffect(() => {
-    apiFetch(`${BASE}/vendors/autocomplete/`).then(setVendors).catch(console.error);
-  }, []);
+    const loadVendors = async () => {
+      try {
+        const res = await apiFetch(
+          `${BASE}/vendors/autocomplete/?page=${vendorPage}`
+        );
+
+        setVendors(res.results ?? res);
+
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    loadVendors();
+  }, [vendorPage]);
 
   const setField = (k: keyof PurchaseFormData, v: string) =>
     setFormData((p) => ({ ...p, [k]: v }));

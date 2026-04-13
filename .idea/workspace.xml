@@ -6,9 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="3dc41c91-c752-4fdf-8cf9-ac2a71f3046b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/products/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/products/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/AppShell.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/AppShell.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/AuthProvider.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/AuthProvider.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Purchases/PurchaseCreateModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Purchases/PurchaseCreateModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Sales/SaleCreateModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Sales/SaleCreateModal.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
