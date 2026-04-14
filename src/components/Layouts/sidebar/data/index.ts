@@ -76,6 +76,12 @@ export const NAV_DATA: NavSection[] = [
         icon: Icons.Table,
         items: [],
       },
+      {
+        title: "Monthly Warehouse Cost",
+        url: "/warehouse-cost",
+        icon: Icons.Table,
+        items: [],
+      },
     ],
   },
 ];
