@@ -44,6 +44,7 @@ export default function SalesPage() {
     if (search) params.set("search", search);
     if (statusFilter) params.set("status", statusFilter);
     params.set("page", String(page));
+
     try {
       const data = await apiFetch(`${BASE}/sales/?${params}`);
       setSales(data.results ?? data);
@@ -53,7 +54,9 @@ export default function SalesPage() {
     }
   }, [search, statusFilter, page]);
 
-  useEffect(() => { loadSales(); }, [loadSales]);
+  useEffect(() => {
+    loadSales();
+  }, [loadSales]);
 
   const openDetail = async (id: number) => {
     setDetailLoading(true);
@@ -61,8 +64,11 @@ export default function SalesPage() {
     try {
       const data = await apiFetch(`${BASE}/sales/${id}/`);
       setDetailSale(data);
-    } catch (e) { console.error(e); }
-    finally { setDetailLoading(false); }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const handleCreate = async () => {
@@ -78,8 +84,50 @@ export default function SalesPage() {
       loadSales();
     } catch (err: any) {
       setError(err.message ?? "Failed to create sale");
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const handleSaveEdit = async (saleId: number, payload: any) => {
+    setSaving(true);
+    setError(null);
+
+    try {
+      const body = {
+        date: payload.date,
+        delivery_date: payload.delivery_date || null,
+        billing_company: payload.billing_company || null,
+        store: payload.store,
+        status: payload.status,
+        shipping_charge: payload.shipping_charge || "0.0000",
+        discount_type: payload.discount_type,
+        discount_amount: payload.discount_amount || "0.0000",
+        sale_items: (payload.sale_items ?? []).map((item: any) => ({
+          product: item.product,
+          quantity: item.quantity || "0",
+          packet_price: item.packet_price || "0.0000",
+          price: item.price || item.price || "0.0000",
+          discount: item.discount || "0.0000",
+        })),
+      };
+
+      await apiFetch(`${BASE}/sales/${saleId}/`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      });
+
+      await openDetail(saleId);
+      await loadSales();
+    } catch (err: any) {
+      setError(err.message ?? "Failed to update sale");
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+
 
   const handleStatusChange = async (id: number, status: string) => {
     try {
@@ -89,36 +137,41 @@ export default function SalesPage() {
       });
       setDetailSale(updated);
       loadSales();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const handleAddPayment = async (
-    saleId: number, amount: string, date: string
-  ) => {
+  const handleAddPayment = async (saleId: number, amount: string, date: string) => {
     await apiFetch(`${BASE}/payments/`, {
       method: "POST",
       body: JSON.stringify({ sale: saleId, amount, date }),
     });
-    openDetail(saleId); // reload
+    openDetail(saleId);
   };
 
   return (
     <>
       <Breadcrumb pageName="Sales Orders" />
 
-      {/* Toolbar */}
       <div className="flex flex-wrap gap-3 items-center justify-between mb-6">
         <div className="flex gap-2 flex-wrap">
           <input
             className="border px-3 py-2 rounded-lg text-sm w-64 outline-none focus:border-blue-400"
             placeholder="Search order, store..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
           />
           <select
             className="border px-3 py-2 rounded-lg text-sm outline-none"
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
           >
             <option value="">All Statuses</option>
             <option value="confirmed">Confirmed</option>
@@ -128,8 +181,12 @@ export default function SalesPage() {
             <option value="cancelled">Cancelled</option>
           </select>
         </div>
+
         <button
-          onClick={() => { setFormData(EMPTY_FORM); setCreateOpen(true); }}
+          onClick={() => {
+            setFormData(EMPTY_FORM);
+            setCreateOpen(true);
+          }}
           className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
         >
           <span className="text-lg leading-none">+</span> New Sale
@@ -159,10 +216,13 @@ export default function SalesPage() {
         <SaleDetailModal
           sale={detailSale}
           loading={detailLoading}
+          saving={saving}
           onClose={() => { setDetailOpen(false); setDetailSale(null); }}
           onStatusChange={handleStatusChange}
           onAddPayment={handleAddPayment}
+          onSaveEdit={handleSaveEdit}
         />
+
       )}
     </>
   );

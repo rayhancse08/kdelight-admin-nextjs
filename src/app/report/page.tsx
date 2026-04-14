@@ -8,7 +8,7 @@ import { MonthlyReport, YearlyReport, MONTHS } from "@/types/report";
 const BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 const fmt = (v: string | null | undefined) =>
-  v ? "৳" + parseFloat(v).toLocaleString("en-BD", { minimumFractionDigits: 2 }) : "৳0.00";
+  v ? "$" + parseFloat(v).toLocaleString("en-BD", { minimumFractionDigits: 2 }) : "$0.00";
 
 const fmtNum = (v: string | null | undefined) =>
   v ? parseFloat(v) : 0;

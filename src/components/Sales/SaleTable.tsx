@@ -11,7 +11,7 @@ const STATUS: Record<string, string> = {
 };
 
 const fmt = (v: string | null) =>
-  v ? "৳" + parseFloat(v).toLocaleString("en-BD", { minimumFractionDigits: 2 }) : "—";
+  v ? "$" + parseFloat(v).toLocaleString("en-BD", { minimumFractionDigits: 2 }) : "—";
 
 type Props = {
   sales: Sale[];
