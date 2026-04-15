@@ -92,6 +92,54 @@ export default function PurchasesPage() {
     }
   };
 
+  const handleSaveEdit = async (purchaseId: number, payload: any) => {
+    setSaving(true);
+    setError(null);
+
+    try {
+      const body = {
+        date: payload.date,
+        vendor: payload.vendor || null,
+        lot_number: payload.lot_number || "",
+        shipping_cost: payload.shipping_cost || "0",
+        food_quality_control_cost: payload.food_quality_control_cost || "0",
+        container_clearing_cost: payload.container_clearing_cost || "0",
+        lory_shipping_cost: payload.lory_shipping_cost || "0",
+        labourer_handling_cost: payload.labourer_handling_cost || "0",
+        warehouse_rent: payload.warehouse_rent || "0",
+        employee_salary: payload.employee_salary || "0",
+        warehouse_other_cost: payload.warehouse_other_cost || "0",
+        lc_information: payload.lc_information || "",
+        bil_information: payload.bil_information || "",
+        container_information: payload.container_information || "",
+        purchase_items: (payload.purchase_items ?? [])
+          .filter((item: any) => item.product)
+          .map((item: any) => ({
+            product: item.product,
+            unit_price: item.unit_price || "0",
+            purchased_carton: item.purchased_carton || "0",
+            received_carton: item.received_carton || "0",
+            damaged_carton: item.damaged_carton || "0",
+            profit_percentage: item.profit_percentage || "0",
+          })),
+      };
+
+      await apiFetch(`${BASE}/purchases/${purchaseId}/`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      });
+
+      await openDetail(purchaseId);
+      await loadPurchases();
+    } catch (err: any) {
+      setError(err.message ?? "Failed to update purchase");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+
+
   const handleAddPayment = async (
     purchaseId: number,
     amount: string,
@@ -149,9 +197,15 @@ export default function PurchasesPage() {
         <PurchaseDetailModal
           purchase={detailPurchase}
           loading={detailLoading}
-          onClose={() => { setDetailOpen(false); setDetailPurchase(null); }}
+          saving={saving}
+          onClose={() => {
+            setDetailOpen(false);
+            setDetailPurchase(null);
+          }}
           onAddPayment={handleAddPayment}
+          onSaveEdit={handleSaveEdit}
         />
+
       )}
     </>
   );
