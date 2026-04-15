@@ -3,6 +3,7 @@
 import { SearchIcon } from "@/assets/icons";
 import Image from "next/image";
 import Link from "next/link";
+
 import { useSidebarContext } from "../sidebar/sidebar-context";
 import { MenuIcon } from "./icons";
 import { Notification } from "./notification";
@@ -13,51 +14,68 @@ export function Header() {
   const { toggleSidebar, isMobile } = useSidebarContext();
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-4 py-5 shadow-1 dark:border-stroke-dark dark:bg-gray-dark md:px-5 2xl:px-10">
-      <button
-        onClick={toggleSidebar}
-        className="rounded-lg border px-1.5 py-1 dark:border-stroke-dark dark:bg-[#020D1A] hover:dark:bg-[#FFFFFF1A] lg:hidden"
-      >
-        <MenuIcon />
-        <span className="sr-only">Toggle Sidebar</span>
-      </button>
+    <header className="sticky top-0 z-30 border-b border-white/50 bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(248,250,252,0.78))] px-4 py-4 shadow-[0_10px_35px_rgba(15,23,42,0.06)] backdrop-blur-2xl md:px-5 2xl:px-10">
+      <div className="flex items-center justify-between gap-3 rounded-[28px] border border-white/60 bg-white/70 px-3 py-3 shadow-[0_12px_32px_rgba(15,23,42,0.06)] backdrop-blur-xl md:px-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <button
+            onClick={toggleSidebar}
+            className="inline-flex size-11 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/90 text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700 lg:hidden"
+          >
+            <MenuIcon />
+            <span className="sr-only">Toggle Sidebar</span>
+          </button>
 
-      {isMobile && (
-        <Link href={"/"} className="ml-2 max-[430px]:hidden min-[375px]:ml-4">
-          <Image
-            src={"/images/logo/logo-icon.svg"}
-            width={32}
-            height={32}
-            alt=""
-            role="presentation"
-          />
-        </Link>
-      )}
+          {isMobile && (
+            <Link
+              href="/"
+              className="flex shrink-0 items-center rounded-2xl border border-white/70 bg-white/80 p-2 shadow-sm min-[375px]:ml-1 max-[430px]:hidden"
+            >
+              <Image
+                src="/images/logo/logo-icon.svg"
+                width={32}
+                height={32}
+                alt=""
+                role="presentation"
+              />
+            </Link>
+          )}
 
-      <div className="max-xl:hidden">
-        <h1 className="mb-0.5 text-heading-5 font-bold text-dark dark:text-white">
-          Dashboard
-        </h1>
-        <p className="font-medium">Kdelight Admin Dashboard Solution</p>
-      </div>
-
-      <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-4">
-        <div className="relative w-full max-w-[300px]">
-          <input
-            type="search"
-            placeholder="Search"
-            className="flex w-full items-center gap-3.5 rounded-full border bg-gray-2 py-3 pl-[53px] pr-5 outline-none transition-colors focus-visible:border-primary dark:border-dark-3 dark:bg-dark-2 dark:hover:border-dark-4 dark:hover:bg-dark-3 dark:hover:text-dark-6 dark:focus-visible:border-primary"
-          />
-
-          <SearchIcon className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 max-[1015px]:size-5" />
+          <div className="hidden min-w-0 xl:block">
+            <h1 className="truncate text-xl font-semibold tracking-tight text-slate-900">
+              Dashboard
+            </h1>
+            <p className="truncate text-sm text-slate-500">
+              Kdelight Admin Dashboard Solution
+            </p>
+          </div>
         </div>
 
-        <ThemeToggleSwitch />
+        <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-3">
+          <div className="relative hidden w-full max-w-[360px] sm:block">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <SearchIcon className="size-5" />
+            </span>
 
-        <Notification />
+            <input
+              type="search"
+              placeholder="Search anything..."
+              className="h-12 w-full rounded-2xl border border-slate-200/80 bg-white/80 py-3 pl-11 pr-4 text-sm text-slate-700 outline-none shadow-sm transition-all duration-200 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+            />
+          </div>
 
-        <div className="shrink-0">
-          <UserInfo />
+          <div className="flex items-center gap-2 rounded-2xl border border-white/60 bg-white/75 p-1.5 shadow-sm backdrop-blur-md">
+            <div className="rounded-xl transition-all hover:bg-sky-50">
+              <ThemeToggleSwitch />
+            </div>
+
+            <div className="rounded-xl transition-all hover:bg-sky-50">
+              <Notification />
+            </div>
+          </div>
+
+          <div className="shrink-0 rounded-2xl border border-white/60 bg-white/80 p-1 shadow-sm backdrop-blur-md">
+            <UserInfo />
+          </div>
         </div>
       </div>
     </header>

@@ -6,9 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="3dc41c91-c752-4fdf-8cf9-ac2a71f3046b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/purchases/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/purchases/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Layouts/sidebar/data/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Layouts/sidebar/data/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Purchases/PurchaseDetailModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Purchases/PurchaseDetailModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Layouts/header/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Layouts/header/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Layouts/sidebar/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Layouts/sidebar/index.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -108,6 +107,7 @@
       <workItem from="1775645425632" duration="27863000" />
       <workItem from="1776062627801" duration="6683000" />
       <workItem from="1776166148172" duration="14298000" />
+      <workItem from="1776269763012" duration="1568000" />
     </task>
     <servers />
   </component>
@@ -119,7 +119,6 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/hooks/useReturnDamagedProduct.ts</url>
-          <properties lambdaOrdinal="-1" />
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>
