@@ -19,9 +19,20 @@ type User = {
 type AuthContextType = {
   user: User | null;
   loading: boolean;
-  login: (data: { user: User; access?: string; refresh?: string }) => void;
+  login: (data: { user?: User; access?: string; refresh?: string }) => void;
   logout: () => void;
 };
+
+/* ---------------- Helpers ---------------- */
+
+// ✅ Safe JSON parser (prevents crash)
+function safeParse(json: string | null) {
+  try {
+    return json ? JSON.parse(json) : null;
+  } catch {
+    return null;
+  }
+}
 
 /* ---------------- Context ---------------- */
 
@@ -44,25 +55,37 @@ export const AuthProvider = ({
       const storedUser = localStorage.getItem("user");
       const token = localStorage.getItem("access");
 
-      if (storedUser && token) {
-        setUser(JSON.parse(storedUser));
+      const parsedUser = safeParse(storedUser);
+
+      if (parsedUser && token) {
+        setUser(parsedUser);
+      } else {
+        // cleanup bad data
+        localStorage.removeItem("user");
       }
     } catch (err) {
       console.error("Auth load error:", err);
+      localStorage.removeItem("user");
     } finally {
-      setLoading(false); // ✅ critical fix
+      setLoading(false);
     }
   }, []);
 
   /* ---------------- Login ---------------- */
 
   const login = (data: {
-    user: User;
+    user?: User;
     access?: string;
     refresh?: string;
   }) => {
     try {
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // ✅ Validate user before saving
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setUser(data.user);
+      } else {
+        console.warn("Login: user is undefined");
+      }
 
       if (data.access) {
         localStorage.setItem("access", data.access);
@@ -71,8 +94,6 @@ export const AuthProvider = ({
       if (data.refresh) {
         localStorage.setItem("refresh", data.refresh);
       }
-
-      setUser(data.user);
     } catch (err) {
       console.error("Login error:", err);
     }

@@ -19,15 +19,15 @@ export default function LoginPage() {
     try {
       const data = await loginUser(email, password);
 
-      // ✅ store tokens
-      localStorage.setItem("access", data.access);
-      localStorage.setItem("refresh", data.refresh);
+      // ❌ REMOVE these (AuthProvider already handles it)
+      // localStorage.setItem("access", data.access);
+      // localStorage.setItem("refresh", data.refresh);
 
-      // ✅ update global auth state
-      login(data.user);
+      // ✅ Correct
+      login(data);
 
-      // ✅ redirect after login
-      router.replace("/");
+      // ✅ redirect
+      router.replace("/"); // or "/"
     } catch (err) {
       setError(err?.message || "Login failed");
     }
