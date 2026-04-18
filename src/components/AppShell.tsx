@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
 
     if (user && isPublic) {
-      router.replace("/dashboard"); // ✅ use correct route
+      router.replace("/"); // ✅ use correct route
     }
   }, [user, loading, pathname, router]);
 
