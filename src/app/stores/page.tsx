@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Pagination } from "@/components/inventory/pagination";
+import { TableLoader } from "@/components/inventory/ui-primitives";
 import { apiFetch } from "@/lib/apiFetch";
 import { Store, StoreFormData } from "@/types/store";
 
@@ -31,17 +32,21 @@ export default function StorePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const loadStores = useCallback(async () => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     params.set("page", String(page));
+    setLoading(true);
     try {
       const data = await apiFetch(`${BASE}/stores/?${params}`);
       setStores(data.results ?? data);
       setTotal(data.count ?? data.length);
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
   }, [search, page]);
 
@@ -149,7 +154,8 @@ export default function StorePage() {
   </tr>
   </thead>
   <tbody className="divide-y divide-gray-50">
-    {stores.length === 0 && (
+    {loading && <TableLoader colSpan={7} message="Loading stores..." />}
+    {!loading && stores.length === 0 && (
         <tr>
           <td colSpan={7} className="text-center py-16 text-gray-400">No stores found</td>
         </tr>

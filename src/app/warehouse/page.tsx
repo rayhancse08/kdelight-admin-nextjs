@@ -8,6 +8,7 @@ import { KpiCard } from "@/components/inventory/kpi-card";
 import {
   InventoryCard, Badge, SearchInput, FormLabel, FormInput,
   PrimaryButton, SecondaryButton, AlertError, EmptyState, DangerButton,
+  TableLoader,
 } from "@/components/inventory/ui-primitives";
 import { apiFetch } from "@/lib/apiFetch";
 import {
@@ -85,17 +86,20 @@ export default function WarehousePage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [productSearch, setProductSearch] = useState("");
   const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const loadItems = useCallback(async () => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (lotFilter) params.set("lot_number__icontains", lotFilter);
     params.set("page", String(page));
+    setLoading(true);
     try {
       const data = await apiFetch(`${BASE}/warehouse/?${params}`);
       setItems(data.results ?? data);
       setTotal(data.count ?? data.length);
     } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }, [search, lotFilter, page]);
 
   useEffect(() => { loadItems(); }, [loadItems]);
@@ -267,7 +271,8 @@ export default function WarehousePage() {
             </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-            {items.length === 0 && (
+            {loading && <TableLoader colSpan={11} message="Loading warehouse items..." />}
+            {!loading && items.length === 0 && (
               <tr>
                 <td colSpan={11}>
                   <EmptyState message="No warehouse items found. Add stock lots to get started." />

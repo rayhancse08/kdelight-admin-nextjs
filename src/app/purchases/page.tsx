@@ -45,17 +45,21 @@ export default function PurchasesPage() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const loadPurchases = useCallback(async () => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     params.set("page", String(page));
+    setLoading(true);
     try {
       const data = await apiFetch(`${BASE}/purchases/?${params}`);
       setPurchases(data.results ?? data);
       setTotal(data.count ?? data.length);
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
   }, [search, page]);
 
@@ -178,6 +182,7 @@ export default function PurchasesPage() {
         purchases={purchases}
         total={total}
         page={page}
+        loading={loading}
         onPageChange={setPage}
         onRowClick={openDetail}
       />

@@ -7,6 +7,7 @@ import { Pagination } from "@/components/inventory/pagination";
 import {
   TabSwitcher, SearchInput, FormSelect, FormLabel, FormInput, FormTextarea,
   PrimaryButton, SecondaryButton, AlertError, EmptyState, DeleteModal, Badge,
+  SectionLoader,
 } from "@/components/inventory/ui-primitives";
 import {
   Product, ProductDetail, ProductCategory,
@@ -130,7 +131,7 @@ export default function ProductsPage() {
 
   const { data: productsData, isLoading: productsLoading } = useProducts(params);
   const { data: detailProduct, isLoading: detailLoading }  = useProductDetail(detailId);
-  const { data: categories = [] }                          = useProductCategories();
+  const { data: categories = [], isLoading: categoriesLoading } = useProductCategories();
   const { data: brands = [] }                              = useBrands();
 
   const createProduct    = useCreateProduct();
@@ -287,11 +288,12 @@ export default function ProductsPage() {
           </div>
 
           {/* Product grid */}
-          {productsLoading && <div className="text-center py-16 text-gray-400 animate-pulse">Loading products...</div>}
+          {productsLoading && <SectionLoader message="Loading products..." />}
           {!productsLoading && products.length === 0 && (
             <EmptyState message="No products found. Try adjusting your search or add a new product." />
           )}
 
+          {!productsLoading && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
             {products.map((p) => (
               <div
@@ -357,6 +359,7 @@ export default function ProductsPage() {
               </div>
             ))}
           </div>
+          )}
 
           {/* Pagination */}
           {pages > 1 && (
@@ -374,6 +377,11 @@ export default function ProductsPage() {
               <span className="text-lg leading-none">+</span> Add Category
             </button>
           </div>
+          {categoriesLoading && <SectionLoader message="Loading categories..." />}
+          {!categoriesLoading && categories.length === 0 && (
+            <EmptyState message="No categories found. Add a category to get started." />
+          )}
+          {!categoriesLoading && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {categories.map((c) => (
               <div key={c.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden group hover:shadow-sm transition-shadow">
@@ -416,6 +424,7 @@ export default function ProductsPage() {
               </div>
             ))}
           </div>
+          )}
         </>
       )}
 
@@ -445,7 +454,7 @@ export default function ProductsPage() {
             </div>
           }
         >
-              {detailLoading && <div className="text-center py-16 text-gray-400 animate-pulse">Loading...</div>}
+              {detailLoading && <SectionLoader message="Loading product details..." />}
               {detailProduct && !detailLoading && (
                 <div className="flex gap-6">
                   {/* Image */}
@@ -547,7 +556,7 @@ export default function ProductsPage() {
           }
         >
           {productEditLoading ? (
-            <div className="text-center py-12 text-gray-400 animate-pulse">Loading product details...</div>
+            <SectionLoader message="Loading product details..." />
           ) : (
             <div className="space-y-4">
               {(productFormError || createProduct.isError || updateProduct.isError) && (

@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Pagination } from "@/components/inventory/pagination";
+import { TableLoader } from "@/components/inventory/ui-primitives";
 import { apiFetch } from "@/lib/apiFetch";
 import { Brand, BrandFormData } from "@/types/brand";
 
@@ -22,17 +23,21 @@ export default function BrandPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const loadBrands = useCallback(async () => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     params.set("page", String(page));
+    setLoading(true);
     try {
       const data = await apiFetch(`${BASE}/brands/?${params}`);
       setBrands(data.results ?? data);
       setTotal(data.count ?? data.length);
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
   }, [search, page]);
 
@@ -190,7 +195,8 @@ export default function BrandPage() {
               </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-              {brands.length === 0 && (
+              {loading && <TableLoader colSpan={4} message="Loading brands..." />}
+              {!loading && brands.length === 0 && (
                 <tr>
                   <td colSpan={4} className="text-center py-16 text-gray-400">No brands found</td>
                 </tr>

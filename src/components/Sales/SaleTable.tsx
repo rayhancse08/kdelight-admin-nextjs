@@ -2,6 +2,7 @@
 import React from "react";
 import { Sale } from "@/types/sale";
 import { Pagination } from "@/components/inventory/pagination";
+import { TableLoader } from "@/components/inventory/ui-primitives";
 
 const STATUS: Record<string, string> = {
   confirmed: "bg-blue-50 text-blue-700",
@@ -18,11 +19,12 @@ type Props = {
   sales: Sale[];
   total: number;
   page: number;
+  loading?: boolean;
   onPageChange: (p: number) => void;
   onRowClick: (id: number) => void;
 };
 
-export default function SaleTable({ sales, total, page, onPageChange, onRowClick }: Props) {
+export default function SaleTable({ sales, total, page, loading = false, onPageChange, onRowClick }: Props) {
   const pageSize = 25;
   const pages = Math.ceil(total / pageSize);
 
@@ -49,7 +51,8 @@ export default function SaleTable({ sales, total, page, onPageChange, onRowClick
           </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-          {sales.length === 0 && (
+          {loading && <TableLoader colSpan={11} message="Loading orders..." />}
+          {!loading && sales.length === 0 && (
             <tr>
               <td colSpan={11} className="text-center py-16 text-gray-400">
                 No sales found

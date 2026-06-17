@@ -38,6 +38,7 @@ export default function SalesPage() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const loadSales = useCallback(async () => {
     const params = new URLSearchParams();
@@ -45,12 +46,15 @@ export default function SalesPage() {
     if (statusFilter) params.set("status", statusFilter);
     params.set("page", String(page));
 
+    setLoading(true);
     try {
       const data = await apiFetch(`${BASE}/sales/?${params}`);
       setSales(data.results ?? data);
       setTotal(data.count ?? data.length);
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
   }, [search, statusFilter, page]);
 
@@ -197,6 +201,7 @@ export default function SalesPage() {
         sales={sales}
         total={total}
         page={page}
+        loading={loading}
         onPageChange={setPage}
         onRowClick={openDetail}
       />

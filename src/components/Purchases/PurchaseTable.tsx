@@ -3,11 +3,13 @@
 import React from "react";
 import { Purchase } from "@/types/purchase";
 import { Pagination } from "@/components/inventory/pagination";
+import { TableLoader } from "@/components/inventory/ui-primitives";
 
 type Props = {
   purchases: Purchase[];
   total: number;
   page: number;
+  loading?: boolean;
   onPageChange: (p: number) => void;
   onRowClick: (id: number) => void;
 };
@@ -16,7 +18,7 @@ const fmt = (v: string | null) =>
   v ? "$" + parseFloat(v).toLocaleString("en-BD", { minimumFractionDigits: 2 }) : "—";
 
 export default function PurchaseTable({
-                                        purchases, total, page, onPageChange, onRowClick,
+                                        purchases, total, page, loading = false, onPageChange, onRowClick,
                                       }: Props) {
   const pageSize = 25;
   const pages = Math.ceil(total / pageSize);
@@ -52,7 +54,8 @@ export default function PurchaseTable({
           </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-          {purchases.length === 0 && (
+          {loading && <TableLoader colSpan={11} message="Loading purchases..." />}
+          {!loading && purchases.length === 0 && (
             <tr>
               <td colSpan={11} className="text-center py-16 text-gray-400">
                 No purchases found

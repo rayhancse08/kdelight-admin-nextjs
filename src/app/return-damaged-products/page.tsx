@@ -6,7 +6,7 @@ import { Pagination } from "@/components/inventory/pagination";
 import { KpiCard } from "@/components/inventory/kpi-card";
 import {
   TabSwitcher, InventoryCard, Badge, SearchInput, FormLabel, FormInput,
-  PrimaryButton, SecondaryButton, AlertError, DeleteModal,
+  PrimaryButton, SecondaryButton, AlertError, DeleteModal, TableLoader,
 } from "@/components/inventory/ui-primitives";
 import { Modal } from "@/components/inventory/modal";
 import {
@@ -256,7 +256,7 @@ export default function ReturnDamagePage() {
                 </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                {returnsLoading && <tr><td colSpan={5} className="text-center py-12 text-gray-400">Loading...</td></tr>}
+                {returnsLoading && <TableLoader colSpan={5} message="Loading returns..." />}
                 {!returnsLoading && returns.length === 0 && (
                   <tr><td colSpan={5} className="text-center py-16 text-gray-400">No return records found</td></tr>
                 )}
@@ -336,7 +336,7 @@ export default function ReturnDamagePage() {
                 </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                {damagesLoading && <tr><td colSpan={5} className="text-center py-12 text-gray-400">Loading...</td></tr>}
+                {damagesLoading && <TableLoader colSpan={5} message="Loading damage records..." />}
                 {!damagesLoading && damages.length === 0 && (
                   <tr><td colSpan={5} className="text-center py-16 text-gray-400">No damage records found</td></tr>
                 )}

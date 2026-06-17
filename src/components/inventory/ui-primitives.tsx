@@ -210,6 +210,36 @@ export function AlertError({ message }: { message: string }) {
   );
 }
 
+export function SectionLoader({ message = "Loading..." }: { message?: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 px-4">
+      <div
+        className="w-9 h-9 border-2 border-gray-200 dark:border-dark-3 border-t-primary rounded-full animate-spin mb-3"
+        role="status"
+        aria-label="Loading"
+      />
+      <p className="text-gray-400 dark:text-gray-500 text-sm">{message}</p>
+    </div>
+  );
+}
+
+export function TableLoader({ colSpan, message = "Loading..." }: { colSpan: number; message?: string }) {
+  return (
+    <tr>
+      <td colSpan={colSpan} className="text-center py-16">
+        <div className="inline-flex flex-col items-center gap-3">
+          <div
+            className="w-8 h-8 border-2 border-gray-200 dark:border-dark-3 border-t-primary rounded-full animate-spin"
+            role="status"
+            aria-label="Loading"
+          />
+          <span className="text-gray-400 dark:text-gray-500 text-sm">{message}</span>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 export function EmptyState({ message }: { message: string }) {
   return (
     <div className="text-center py-16 px-4">

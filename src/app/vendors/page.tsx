@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Pagination } from "@/components/inventory/pagination";
+import { TableLoader } from "@/components/inventory/ui-primitives";
 import { apiFetch } from "@/lib/apiFetch";
 import { Vendor, VendorFormData } from "@/types/vendor";
 
@@ -31,17 +32,20 @@ export default function VendorPage() {
   const [detailVendor, setDetailVendor] = useState<Vendor | null>(null);
 
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   /* ── Load ────────────────────────────────────────────── */
   const loadVendors = useCallback(async () => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     params.set("page", String(page));
+    setLoading(true);
     try {
       const data = await apiFetch(`${BASE}/vendors/?${params}`);
       setVendors(data.results ?? data);
       setTotal(data.count ?? data.length);
     } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }, [search, page]);
 
   useEffect(() => { loadVendors(); }, [loadVendors]);
@@ -156,7 +160,8 @@ export default function VendorPage() {
             </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-            {vendors.length === 0 && (
+            {loading && <TableLoader colSpan={6} message="Loading vendors..." />}
+            {!loading && vendors.length === 0 && (
               <tr>
                 <td colSpan={6} className="text-center py-16 text-gray-400">
                   No vendors found
