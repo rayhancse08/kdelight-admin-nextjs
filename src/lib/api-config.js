@@ -1,7 +1,7 @@
 /**
  * API URL helpers
  *
- * Browser → /django/* (rewritten by Next.js to NEXT_PUBLIC_API_URL/api/*)
+ * Browser → /django/* (Route Handler proxies to NEXT_PUBLIC_API_URL/api/*)
  * Server  → full backend URL with Django trailing slash
  */
 
@@ -9,7 +9,7 @@ export function getBackendRoot() {
   return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 }
 
-/** Proxy prefix — must match next.config.mjs rewrites source */
+/** Proxy prefix — must match src/app/django/[...path]/route.ts */
 export const PROXY_PREFIX = "/django";
 
 /** Django APPEND_SLASH */

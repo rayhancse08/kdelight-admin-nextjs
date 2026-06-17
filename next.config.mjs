@@ -1,15 +1,5 @@
 /** @type {import("next").NextConfig} */
-const backend = (process.env.NEXT_PUBLIC_API_URL ?? "https://kdelight.info").replace(/\/$/, "");
-
 const nextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/django/:path*",
-        destination: `${backend}/api/:path*/`,
-      },
-    ];
-  },
   images: {
     qualities: [100, 75],
     remotePatterns: [

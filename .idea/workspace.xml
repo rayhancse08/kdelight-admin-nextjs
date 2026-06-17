@@ -4,26 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3dc41c91-c752-4fdf-8cf9-ac2a71f3046b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/next.config.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.mjs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/brands/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/brands/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/products/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/products/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/return-damaged-products/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/return-damaged-products/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/sales/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/sales/[id]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/stores/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/stores/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/vendors/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/vendors/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/warehouse/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/warehouse/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Purchases/PurchaseTable.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Purchases/PurchaseTable.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Sales/SaleTable.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Sales/SaleTable.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hooks/useDashboard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/hooks/useDashboard.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/apiFetch.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/apiFetch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/auth.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/getProducts.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/getProducts.ts" afterDir="false" />
-    </list>
+    <list default="true" id="3dc41c91-c752-4fdf-8cf9-ac2a71f3046b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -124,7 +105,7 @@
       <workItem from="1776166148172" duration="14298000" />
       <workItem from="1776269763012" duration="5399000" />
       <workItem from="1776527181948" duration="4997000" />
-      <workItem from="1781706900935" duration="1984000" />
+      <workItem from="1781706900935" duration="2579000" />
     </task>
     <servers />
   </component>
