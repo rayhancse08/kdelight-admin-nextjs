@@ -2,6 +2,13 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { Modal } from "@/components/inventory/modal";
+import { Pagination } from "@/components/inventory/pagination";
+import { KpiCard } from "@/components/inventory/kpi-card";
+import {
+  InventoryCard, Badge, SearchInput, FormLabel, FormInput,
+  PrimaryButton, SecondaryButton, AlertError, EmptyState, DangerButton,
+} from "@/components/inventory/ui-primitives";
 import { apiFetch } from "@/lib/apiFetch";
 import {
   WarehouseItem,
@@ -134,6 +141,15 @@ export default function WarehousePage() {
   };
 
   const handleSave = async () => {
+    if (!editTarget && !formData.product) {
+      setError("Please select a product from the search results.");
+      return;
+    }
+    if (!formData.stocked_quantity) {
+      setError("Stocked cartons quantity is required.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     const payload = {
@@ -200,54 +216,39 @@ export default function WarehousePage() {
     <>
       <Breadcrumb pageName="Warehouse" />
 
-      {/* KPI strip */}
+      {/* KPI strip — values from current page */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "Total Stocked",   value: totalStocked,   color: "text-gray-800",    accent: "bg-blue-600" },
-          { label: "Remaining",       value: totalRemaining, color: "text-green-700",   accent: "bg-green-500" },
-          { label: "Total Sold",      value: totalSold,      color: "text-blue-700",    accent: "bg-blue-400" },
-          { label: "Out of Stock",    value: outOfStock,     color: "text-red-600",     accent: "bg-red-500" },
-        ].map(({ label, value, color, accent }) => (
-          <div key={label} className="bg-white rounded-xl border border-gray-200 p-5 relative overflow-hidden">
-            <div className={`absolute top-0 left-0 right-0 h-0.5 ${accent}`} />
-            <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">{label}</p>
-            <p className={`text-2xl font-semibold ${color}`}>{value.toLocaleString()}</p>
-          </div>
-        ))}
+        <KpiCard label="Stocked (this page)" value={totalStocked} accent="blue" />
+        <KpiCard label="Remaining (this page)" value={totalRemaining} accent="green" />
+        <KpiCard label="Sold (this page)" value={totalSold} accent="indigo" />
+        <KpiCard label="Out of Stock (page)" value={outOfStock} accent="red" sub="lots with 0 remaining" />
       </div>
 
       {/* Toolbar */}
       <div className="flex flex-wrap gap-3 items-center justify-between mb-6">
         <div className="flex gap-2 flex-wrap">
-          <input
-            className="border px-3 py-2 rounded-lg text-sm w-56 outline-none focus:border-blue-400"
+          <SearchInput
             placeholder="Search product..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
-          <input
-            className="border px-3 py-2 rounded-lg text-sm w-40 outline-none focus:border-blue-400"
+          <SearchInput
+            className="w-40"
             placeholder="Filter lot no..."
             value={lotFilter}
             onChange={(e) => { setLotFilter(e.target.value); setPage(1); }}
           />
         </div>
-        <button
-          onClick={openCreate}
-          className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
-        >
+        <PrimaryButton onClick={openCreate}>
           <span className="text-lg leading-none">+</span> Add Item
-        </button>
+        </PrimaryButton>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
-          <span className="font-semibold text-gray-800">Warehouse Inventory</span>
-          <span className="text-xs text-gray-400 bg-gray-50 border border-gray-200 px-2 py-1 rounded-full">
-            {total} items
-          </span>
-        </div>
+      <InventoryCard
+        title="Warehouse Inventory"
+        badge={<Badge>{total} items</Badge>}
+      >
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -268,8 +269,8 @@ export default function WarehousePage() {
             <tbody className="divide-y divide-gray-50">
             {items.length === 0 && (
               <tr>
-                <td colSpan={11} className="text-center py-16 text-gray-400">
-                  No warehouse items found
+                <td colSpan={11}>
+                  <EmptyState message="No warehouse items found. Add stock lots to get started." />
                 </td>
               </tr>
             )}
@@ -347,25 +348,8 @@ export default function WarehousePage() {
           </table>
         </div>
 
-        {pages > 1 && (
-          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-            <span className="text-xs text-gray-400">Page {page} of {pages}</span>
-            <div className="flex gap-1">
-              {Array.from({ length: Math.min(pages, 5) }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setPage(n)}
-                  className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
-                    n === page ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-100"
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+        <Pagination page={page} pages={pages} onChange={setPage} />
+      </InventoryCard>
 
       {/* ── Detail Modal ────────────────────────────────── */}
       {detailOpen && (
@@ -479,31 +463,22 @@ export default function WarehousePage() {
 
       {/* ── Create / Edit Modal ─────────────────────────── */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center py-8 overflow-y-auto px-4">
-          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl">
-            <div className="px-7 pt-6 pb-5 border-b border-gray-100 flex justify-between items-start">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {editTarget ? "Edit Warehouse Item" : "New Warehouse Item"}
-                </h2>
-                <p className="text-sm text-gray-400 mt-0.5">
-                  {editTarget ? editTarget.product_name : "Link a product to a lot"}
-                </p>
-              </div>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50"
-              >
-                ✕
-              </button>
+        <Modal
+          open
+          onClose={() => setModalOpen(false)}
+          title={editTarget ? "Edit Warehouse Item" : "New Warehouse Item"}
+          subtitle={editTarget ? editTarget.product_name : "Link a product to a lot"}
+          maxWidth="2xl"
+          footer={
+            <div className="flex justify-end gap-3">
+              <SecondaryButton onClick={() => setModalOpen(false)}>Cancel</SecondaryButton>
+              <PrimaryButton onClick={handleSave} disabled={saving}>
+                {saving ? "Saving..." : editTarget ? "Update Item" : "Save Item"}
+              </PrimaryButton>
             </div>
-
-            <div className="px-7 py-6">
-              {error && (
-                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
-                  {error}
-                </div>
-              )}
+          }
+        >
+          {error && <AlertError message={error} />}
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Product autocomplete */}
@@ -621,51 +596,26 @@ export default function WarehousePage() {
                   />
                 </div>
               </div>
-            </div>
-
-            <div className="px-7 pb-6 pt-4 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={() => setModalOpen(false)}
-                className="px-5 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg disabled:opacity-60 hover:bg-blue-700"
-              >
-                {saving ? "Saving..." : editTarget ? "Update Item" : "Save Item"}
-              </button>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
-      {/* Delete Confirm */}
       {deleteId !== null && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-7">
-            <h3 className="text-base font-semibold text-gray-900 mb-2">Delete Warehouse Item?</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              This will soft-delete the item. Sale records linked to this lot will be unaffected.
-            </p>
+        <Modal
+          open
+          onClose={() => setDeleteId(null)}
+          title="Delete Warehouse Item?"
+          maxWidth="sm"
+          footer={
             <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(deleteId)}
-                className="px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700"
-              >
-                Delete
-              </button>
+              <SecondaryButton onClick={() => setDeleteId(null)}>Cancel</SecondaryButton>
+              <DangerButton onClick={() => handleDelete(deleteId)}>Delete</DangerButton>
             </div>
-          </div>
-        </div>
+          }
+        >
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            This will soft-delete the item. Sale records linked to this lot will be unaffected.
+          </p>
+        </Modal>
       )}
     </>
   );

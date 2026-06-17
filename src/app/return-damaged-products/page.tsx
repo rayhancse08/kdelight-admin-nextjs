@@ -2,6 +2,13 @@
 
 import React, { useState } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { Pagination } from "@/components/inventory/pagination";
+import { KpiCard } from "@/components/inventory/kpi-card";
+import {
+  TabSwitcher, InventoryCard, Badge, SearchInput, FormLabel, FormInput,
+  PrimaryButton, SecondaryButton, AlertError, DeleteModal,
+} from "@/components/inventory/ui-primitives";
+import { Modal } from "@/components/inventory/modal";
 import {
   ReturnProduct, DamageProduct,
   ReturnProductFormData, DamageProductFormData,
@@ -69,23 +76,7 @@ function ProductAutocomplete({
   );
 }
 
-// ── Delete confirm ────────────────────────────────────────────────────────────
-function DeleteModal({ label, onConfirm, onClose }: { label: string; onConfirm: () => void; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-7">
-        <h3 className="text-base font-semibold text-gray-900 mb-2">Delete {label}?</h3>
-        <p className="text-sm text-gray-500 mb-6">This soft-deletes the record. Stock adjustments will be reversed.</p>
-        <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button onClick={onConfirm} className="px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700">Delete</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════════════════
+// ── Shared product autocomplete input ────────────────────────────────────────
 export default function ReturnDamagePage() {
   const [tab, setTab] = useState<"returns" | "damage">("returns");
 
@@ -127,6 +118,7 @@ export default function ReturnDamagePage() {
     product: "", product_name: "", date: "", lot_number: "", quantity: "",
   });
   const [returnDeleteId, setReturnDeleteId] = useState<number | null>(null);
+  const [returnFormError, setReturnFormError] = useState<string | null>(null);
 
   // ── Damage modal state ────────────────────────────────────────────────────
   const [damageModal,      setDamageModal]      = useState(false);
@@ -135,106 +127,101 @@ export default function ReturnDamagePage() {
     product: "", product_name: "", date: "", quantity: "",
   });
   const [damageDeleteId, setDamageDeleteId] = useState<number | null>(null);
+  const [damageFormError, setDamageFormError] = useState<string | null>(null);
 
   // ── Return handlers ───────────────────────────────────────────────────────
   const openCreateReturn = () => {
     setReturnEditTarget(null);
     setReturnForm({ product: "", product_name: "", date: new Date().toISOString().slice(0, 10), lot_number: "", quantity: "" });
+    setReturnFormError(null);
     setReturnModal(true);
   };
   const openEditReturn = (r: ReturnProduct) => {
     setReturnEditTarget(r);
     setReturnForm({ product: String(r.product), product_name: r.product_name, date: r.date, lot_number: r.lot_number ?? "", quantity: String(r.quantity) });
+    setReturnFormError(null);
     setReturnModal(true);
   };
   const handleSaveReturn = async () => {
-    if (returnEditTarget) {
-      await updateReturn.mutateAsync({ id: returnEditTarget.id, data: returnForm });
-    } else {
-      await createReturn.mutateAsync(returnForm);
+    if (!returnForm.product) {
+      setReturnFormError("Please select a product.");
+      return;
     }
-    setReturnModal(false);
+    if (!returnForm.quantity || Number(returnForm.quantity) < 1) {
+      setReturnFormError("Quantity must be at least 1.");
+      return;
+    }
+    setReturnFormError(null);
+    try {
+      if (returnEditTarget) {
+        await updateReturn.mutateAsync({ id: returnEditTarget.id, data: returnForm });
+      } else {
+        await createReturn.mutateAsync(returnForm);
+      }
+      setReturnModal(false);
+    } catch (err: unknown) {
+      setReturnFormError(err instanceof Error ? err.message : "Failed to save return");
+    }
   };
 
   // ── Damage handlers ───────────────────────────────────────────────────────
   const openCreateDamage = () => {
     setDamageEditTarget(null);
     setDamageForm({ product: "", product_name: "", date: new Date().toISOString().slice(0, 10), quantity: "" });
+    setDamageFormError(null);
     setDamageModal(true);
   };
   const openEditDamage = (d: DamageProduct) => {
     setDamageEditTarget(d);
     setDamageForm({ product: String(d.product), product_name: d.product_name, date: d.date, quantity: String(d.quantity) });
+    setDamageFormError(null);
     setDamageModal(true);
   };
   const handleSaveDamage = async () => {
-    if (damageEditTarget) {
-      await updateDamage.mutateAsync({ id: damageEditTarget.id, data: damageForm });
-    } else {
-      await createDamage.mutateAsync(damageForm);
+    if (!damageForm.product) {
+      setDamageFormError("Please select a product.");
+      return;
     }
-    setDamageModal(false);
+    if (!damageForm.quantity || Number(damageForm.quantity) < 1) {
+      setDamageFormError("Quantity must be at least 1.");
+      return;
+    }
+    setDamageFormError(null);
+    try {
+      if (damageEditTarget) {
+        await updateDamage.mutateAsync({ id: damageEditTarget.id, data: damageForm });
+      } else {
+        await createDamage.mutateAsync(damageForm);
+      }
+      setDamageModal(false);
+    } catch (err: unknown) {
+      setDamageFormError(err instanceof Error ? err.message : "Failed to save damage record");
+    }
   };
-
-  // ── Pagination helper ─────────────────────────────────────────────────────
-  const Pagination = ({ page, pages, onChange }: { page: number; pages: number; onChange: (p: number) => void }) =>
-    pages > 1 ? (
-      <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-        <span className="text-xs text-gray-400">Page {page} of {pages}</span>
-        <div className="flex gap-1">
-          {Array.from({ length: Math.min(pages, 5) }, (_, i) => i + 1).map((n) => (
-            <button
-              key={n}
-              onClick={() => onChange(n)}
-              className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${n === page ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-100"}`}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-      </div>
-    ) : null;
 
   return (
     <>
       <Breadcrumb pageName="Returns & Damage" />
 
-      {/* KPI strip */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-amber-400" />
-          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Total Returns</p>
-          <p className="text-2xl font-semibold text-amber-600">{returnTotal.toLocaleString()}</p>
-          <p className="text-xs text-gray-400 mt-0.5">records</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-400" />
-          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Total Damage Records</p>
-          <p className="text-2xl font-semibold text-red-600">{damageTotal.toLocaleString()}</p>
-          <p className="text-xs text-gray-400 mt-0.5">
-            Loss: {fmt(String(damages.reduce((a, d) => a + parseFloat(d.price || "0"), 0)))}
-          </p>
-        </div>
+        <KpiCard label="Total Returns" value={returnTotal} sub="records" accent="amber" />
+        <KpiCard
+          label="Damage Records"
+          value={damageTotal}
+          sub={`Loss: ${fmt(String(damages.reduce((a, d) => a + parseFloat(d.price || "0"), 0)))}`}
+          accent="red"
+        />
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit mb-6">
-        {([
-          { key: "returns", label: "Returns",       count: returnTotal },
-          { key: "damage",  label: "Damage",        count: damageTotal },
-        ] as const).map(({ key, label, count }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`px-5 py-1.5 rounded-md text-sm font-medium transition-all ${tab === key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-          >
-            {label}
-            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${tab === key ? "bg-blue-100 text-blue-700" : "bg-gray-200 text-gray-500"}`}>
-              {count}
-            </span>
-          </button>
-        ))}
-      </div>
+      <TabSwitcher
+        tabs={[
+          { key: "returns" as const, label: "Returns", count: returnTotal },
+          { key: "damage" as const, label: "Damage", count: damageTotal },
+        ]}
+        active={tab}
+        onChange={setTab}
+        className="mb-6"
+      />
 
       {/* ══════════════ RETURNS TAB ══════════════ */}
       {tab === "returns" && (
@@ -403,10 +390,14 @@ export default function ReturnDamagePage() {
             </div>
 
             <div className="px-7 py-6 space-y-4">
-              {(createReturn.isError || updateReturn.isError) && (
-                <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
-                  {((createReturn.error || updateReturn.error) as any)?.message ?? "Failed to save"}
-                </div>
+              {(returnFormError || createReturn.isError || updateReturn.isError) && (
+                <AlertError
+                  message={
+                    returnFormError
+                    ?? ((createReturn.error || updateReturn.error) as Error)?.message
+                    ?? "Failed to save"
+                  }
+                />
               )}
 
               <div>
@@ -482,10 +473,14 @@ export default function ReturnDamagePage() {
             </div>
 
             <div className="px-7 py-6 space-y-4">
-              {(createDamage.isError || updateDamage.isError) && (
-                <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
-                  {((createDamage.error || updateDamage.error) as any)?.message ?? "Failed to save"}
-                </div>
+              {(damageFormError || createDamage.isError || updateDamage.isError) && (
+                <AlertError
+                  message={
+                    damageFormError
+                    ?? ((createDamage.error || updateDamage.error) as Error)?.message
+                    ?? "Failed to save"
+                  }
+                />
               )}
 
               <div>

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { apiFetch } from "@/lib/apiFetch";
+import { apiPath } from "@/lib/api-config";
 
 type SaleDetail = {
   id: number;
@@ -48,15 +49,17 @@ type SalePaymentDetail = {
 };
 
 export default function SaleDetailPage() {
-  const { id } = useParams();
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
   const [sale, setSale] = useState<SaleDetail | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
   const [saving, setSaving] = useState(false);
 
   const loadSale = async () => {
+    if (!id) return;
     try {
-      const data = await apiFetch(`https://kdelight.info/api/sales/${id}/`);
+      const data = await apiFetch(apiPath(`sales/${id}`));
       setSale(data);
     } catch (e) {
       console.error(e);
@@ -68,8 +71,9 @@ export default function SaleDetailPage() {
   }, [id]);
 
   const updateStatus = async (status: string) => {
+    if (!id) return;
     try {
-      await apiFetch(`https://kdelight.info/api/sales/${id}/`, {
+      await apiFetch(apiPath(`sales/${id}`), {
         method: "PATCH",
         body: JSON.stringify({ status }),
       });
@@ -80,10 +84,10 @@ export default function SaleDetailPage() {
   };
 
   const addPayment = async () => {
-    if (!paymentAmount) return;
+    if (!id || !paymentAmount) return;
     setSaving(true);
     try {
-      await apiFetch("https://kdelight.info/api/payments/", {
+      await apiFetch(apiPath("payments"), {
         method: "POST",
         body: JSON.stringify({
           sale: id,

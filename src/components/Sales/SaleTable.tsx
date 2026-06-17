@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Sale } from "@/types/sale";
+import { Pagination } from "@/components/inventory/pagination";
 
 const STATUS: Record<string, string> = {
   confirmed: "bg-blue-50 text-blue-700",
@@ -101,29 +102,7 @@ export default function SaleTable({ sales, total, page, onPageChange, onRowClick
         </table>
       </div>
 
-      {/* Pagination */}
-      {pages > 1 && (
-        <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-          <span className="text-xs text-gray-400">
-            Page {page} of {pages}
-          </span>
-          <div className="flex gap-1">
-            {Array.from({ length: Math.min(pages, 5) }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => onPageChange(p)}
-                className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
-                  p === page
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-500 hover:bg-gray-100"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      <Pagination page={page} pages={pages} onChange={onPageChange} />
     </div>
   );
 }

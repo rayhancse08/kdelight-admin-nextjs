@@ -2,6 +2,12 @@
 
 import React, { useState, useRef } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { Modal } from "@/components/inventory/modal";
+import { Pagination } from "@/components/inventory/pagination";
+import {
+  TabSwitcher, SearchInput, FormSelect, FormLabel, FormInput, FormTextarea,
+  PrimaryButton, SecondaryButton, AlertError, EmptyState, DeleteModal, Badge,
+} from "@/components/inventory/ui-primitives";
 import {
   Product, ProductDetail, ProductCategory,
   ProductFormData, ProductCategoryFormData,
@@ -12,6 +18,8 @@ import {
   useCreateProduct, useUpdateProduct, useDeleteProduct, useRecalculateProduct,
   useCreateCategory, useUpdateCategory, useDeleteCategory,
 } from "@/hooks/useProducts";
+import { useBrands } from "@/hooks/useBrands";
+import { apiFetch } from "@/lib/apiFetch";
 
 function ProductPlaceholder({ name }: { name?: string }) {
   return (
@@ -40,6 +48,7 @@ function ProductPlaceholder({ name }: { name?: string }) {
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API = `${BASE_URL}/api`;
 const fmt = (v: string | number | null | undefined) =>
   v ? "$" + parseFloat(String(v)).toLocaleString("en-BD", { minimumFractionDigits: 2 }) : "—";
 
@@ -52,21 +61,7 @@ function StockBadge({ qty }: { qty: number | null }) {
   return <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">{qty} ctn</span>;
 }
 
-// ── Delete confirm ─────────────────────────────────────────────────────────
-function DeleteModal({ label, onConfirm, onClose }: { label: string; onConfirm: () => void; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-7">
-        <h3 className="text-base font-semibold text-gray-900 mb-2">Delete {label}?</h3>
-        <p className="text-sm text-gray-500 mb-6">This soft-deletes the record. Existing sale and warehouse records are unaffected.</p>
-        <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button onClick={onConfirm} className="px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700">Delete</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+// ── Delete confirm (categories use shared DeleteModal) ─────────────────────
 
 // ── Image preview input ────────────────────────────────────────────────────
 function ImageInput({ label, value, onChange }: { label: string; value: File | null; onChange: (f: File | null) => void }) {
@@ -115,6 +110,8 @@ export default function ProductsPage() {
   const [productEditId,     setProductEditId]     = useState<number | null>(null);
   const [productForm,       setProductForm]       = useState<ProductFormData>(EMPTY_PRODUCT_FORM);
   const [productDeleteId,   setProductDeleteId]   = useState<number | null>(null);
+  const [productFormError,  setProductFormError]  = useState<string | null>(null);
+  const [productEditLoading, setProductEditLoading] = useState(false);
   const [recalcId,          setRecalcId]          = useState<number | null>(null);
 
   // ── Detail modal ──────────────────────────────────────────────────────────
@@ -134,6 +131,7 @@ export default function ProductsPage() {
   const { data: productsData, isLoading: productsLoading } = useProducts(params);
   const { data: detailProduct, isLoading: detailLoading }  = useProductDetail(detailId);
   const { data: categories = [] }                          = useProductCategories();
+  const { data: brands = [] }                              = useBrands();
 
   const createProduct    = useCreateProduct();
   const updateProduct    = useUpdateProduct();
@@ -151,34 +149,69 @@ export default function ProductsPage() {
   const openCreateProduct = () => {
     setProductEditId(null);
     setProductForm(EMPTY_PRODUCT_FORM);
+    setProductFormError(null);
     setProductModal(true);
   };
 
-  const openEditProduct = (p: Product) => {
-    setProductEditId(p.id);
-    setProductForm({
-      brand:            String(p.brand ?? ""),
-      name:             p.name ?? "",
-      description:      "",
-      category:         String(p.category ?? ""),
-      packet_per_carton:String(p.packet_per_carton ?? ""),
-      weight:           String(p.weight),
-      unit:             p.unit,
-      discount_type:    p.discount_type,
-      discount:         p.discount ?? "",
-      manual_entry:     false,
-      image:            null,
-    });
-    setProductModal(true);
+  const openEditProduct = async (p: Product | ProductDetail) => {
+    setProductEditLoading(true);
+    setProductFormError(null);
+    try {
+      const detail: ProductDetail = "description" in p && p.description !== undefined
+        ? (p as ProductDetail)
+        : await apiFetch(`${API}/products/${p.id}/`);
+
+      setProductEditId(p.id);
+      setProductForm({
+        brand:             String(detail.brand ?? ""),
+        name:              detail.name ?? "",
+        description:       detail.description ?? "",
+        category:          String(detail.category ?? ""),
+        packet_per_carton: String(detail.packet_per_carton ?? ""),
+        weight:            String(detail.weight),
+        unit:              detail.unit,
+        discount_type:     detail.discount_type,
+        discount:          detail.discount ?? "",
+        manual_entry:      detail.manual_entry ?? false,
+        image:             null,
+      });
+      setProductModal(true);
+    } catch (err: unknown) {
+      setProductFormError(err instanceof Error ? err.message : "Failed to load product");
+    } finally {
+      setProductEditLoading(false);
+    }
   };
 
   const handleSaveProduct = async () => {
-    if (productEditId) {
-      await updateProduct.mutateAsync({ id: productEditId, form: productForm });
-    } else {
-      await createProduct.mutateAsync(productForm);
+    if (!productForm.name.trim()) {
+      setProductFormError("Product name is required.");
+      return;
     }
-    setProductModal(false);
+    if (!productForm.brand) {
+      setProductFormError("Please select a brand.");
+      return;
+    }
+    if (!productForm.category) {
+      setProductFormError("Please select a category.");
+      return;
+    }
+    if (!productForm.weight) {
+      setProductFormError("Weight is required.");
+      return;
+    }
+
+    setProductFormError(null);
+    try {
+      if (productEditId) {
+        await updateProduct.mutateAsync({ id: productEditId, form: productForm });
+      } else {
+        await createProduct.mutateAsync(productForm);
+      }
+      setProductModal(false);
+    } catch (err: unknown) {
+      setProductFormError(err instanceof Error ? err.message : "Failed to save product");
+    }
   };
 
   // ── Category handlers ─────────────────────────────────────────────────────
@@ -195,12 +228,17 @@ export default function ProductsPage() {
   };
 
   const handleSaveCategory = async () => {
-    if (catEditTarget) {
-      await updateCategory.mutateAsync({ id: catEditTarget.id, form: catForm });
-    } else {
-      await createCategory.mutateAsync(catForm);
+    if (!catForm.name.trim()) return;
+    try {
+      if (catEditTarget) {
+        await updateCategory.mutateAsync({ id: catEditTarget.id, form: catForm });
+      } else {
+        await createCategory.mutateAsync(catForm);
+      }
+      setCatModal(false);
+    } catch {
+      // errors shown via mutation state
     }
-    setCatModal(false);
   };
 
   const setField = <T extends keyof ProductFormData>(k: T, v: ProductFormData[T]) =>
@@ -211,20 +249,15 @@ export default function ProductsPage() {
       <Breadcrumb pageName="Products" />
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit mb-6">
-        {([
-          { key: "products",   label: "Products"   },
-          { key: "categories", label: "Categories" },
-        ] as const).map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`px-5 py-1.5 rounded-md text-sm font-medium transition-all ${tab === key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <TabSwitcher
+        tabs={[
+          { key: "products" as const, label: "Products", count: productCount },
+          { key: "categories" as const, label: "Categories", count: categories.length },
+        ]}
+        active={tab}
+        onChange={setTab}
+        className="mb-6"
+      />
 
       {/* ══════════════ PRODUCTS TAB ══════════════ */}
       {tab === "products" && (
@@ -232,36 +265,31 @@ export default function ProductsPage() {
           {/* Toolbar */}
           <div className="flex flex-wrap gap-3 items-center justify-between mb-6">
             <div className="flex gap-2 flex-wrap">
-              <input
-                className="border px-3 py-2 rounded-lg text-sm w-56 outline-none focus:border-blue-400"
+              <SearchInput
                 placeholder="Search products..."
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               />
-              <select
-                className="border px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-400"
+              <FormSelect
                 value={catFilter}
                 onChange={(e) => { setCatFilter(e.target.value); setPage(1); }}
               >
                 <option value="">All Categories</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              </FormSelect>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400 bg-gray-50 border border-gray-200 px-2 py-1 rounded-full">{productCount} products</span>
-              <button
-                onClick={openCreateProduct}
-                className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-700"
-              >
+              <Badge>{productCount} products</Badge>
+              <PrimaryButton onClick={openCreateProduct}>
                 <span className="text-lg leading-none">+</span> Add Product
-              </button>
+              </PrimaryButton>
             </div>
           </div>
 
           {/* Product grid */}
-          {productsLoading && <div className="text-center py-16 text-gray-400">Loading...</div>}
+          {productsLoading && <div className="text-center py-16 text-gray-400 animate-pulse">Loading products...</div>}
           {!productsLoading && products.length === 0 && (
-            <div className="text-center py-16 text-gray-400 bg-white rounded-xl border border-gray-200">No products found</div>
+            <EmptyState message="No products found. Try adjusting your search or add a new product." />
           )}
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
@@ -269,7 +297,7 @@ export default function ProductsPage() {
               <div
                 key={p.id}
                 onClick={() => setDetailId(p.id)}
-                className="bg-white border border-gray-200 rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition-shadow group"
+                className="bg-white dark:bg-gray-dark border border-gray-200/80 dark:border-dark-3 rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:border-primary/30 transition-all duration-300 group"
               >
                 {/* Product image */}
                 <div className="aspect-square bg-gray-50 relative overflow-hidden">
@@ -332,14 +360,7 @@ export default function ProductsPage() {
 
           {/* Pagination */}
           {pages > 1 && (
-            <div className="flex items-center justify-between mb-6">
-              <span className="text-xs text-gray-400">Page {page} of {pages}</span>
-              <div className="flex gap-1">
-                {Array.from({ length: Math.min(pages, 5) }, (_, i) => i + 1).map((n) => (
-                  <button key={n} onClick={() => setPage(n)} className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${n === page ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-100"}`}>{n}</button>
-                ))}
-              </div>
-            </div>
+            <Pagination page={page} pages={pages} onChange={setPage} className="mb-6 rounded-2xl border border-gray-200/80 bg-white dark:bg-gray-dark dark:border-dark-3" />
           )}
         </>
       )}
@@ -400,32 +421,31 @@ export default function ProductsPage() {
 
       {/* ══════════════ PRODUCT DETAIL MODAL ══════════════ */}
       {detailId !== null && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center py-8 overflow-y-auto px-4 mt-40">
-          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl">
-            <div className="px-7 pt-6 pb-5 border-b border-gray-100 flex justify-between items-start">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 line-clamp-1">{detailProduct?.name ?? "Loading..."}</h2>
-                <p className="text-sm text-gray-400 mt-0.5">{detailProduct?.brand_name} · {detailProduct?.category_name}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {detailProduct && (
-                  <>
-                    <button
-                      onClick={async () => { setRecalcId(detailProduct.id); await recalcProduct.mutateAsync(detailProduct.id); setRecalcId(null); }}
-                      disabled={recalcId === detailProduct.id}
-                      className="text-xs text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 font-medium disabled:opacity-50"
-                    >
-                      {recalcId === detailProduct.id ? "..." : "↻ Recalc"}
-                    </button>
-                    <button onClick={() => { setDetailId(null); openEditProduct(detailProduct); }} className="text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 font-medium">Edit</button>
-                  </>
-                )}
-                <button onClick={() => setDetailId(null)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50">✕</button>
-              </div>
+        <Modal
+          open
+          onClose={() => setDetailId(null)}
+          title={detailProduct?.name ?? "Loading..."}
+          subtitle={detailProduct ? `${detailProduct.brand_name} · ${detailProduct.category_name}` : undefined}
+          maxWidth="2xl"
+          headerActions={detailProduct ? (
+            <>
+              <button
+                onClick={async () => { setRecalcId(detailProduct.id); await recalcProduct.mutateAsync(detailProduct.id); setRecalcId(null); }}
+                disabled={recalcId === detailProduct.id}
+                className="text-xs text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 font-medium disabled:opacity-50"
+              >
+                {recalcId === detailProduct.id ? "..." : "↻ Recalc"}
+              </button>
+              <button onClick={() => { setDetailId(null); openEditProduct(detailProduct); }} className="text-xs text-primary bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 font-medium">Edit</button>
+            </>
+          ) : undefined}
+          footer={
+            <div className="flex justify-end">
+              <SecondaryButton onClick={() => setDetailId(null)}>Close</SecondaryButton>
             </div>
-
-            <div className="px-7 py-6">
-              {detailLoading && <div className="text-center py-16 text-gray-400">Loading...</div>}
+          }
+        >
+              {detailLoading && <div className="text-center py-16 text-gray-400 animate-pulse">Loading...</div>}
               {detailProduct && !detailLoading && (
                 <div className="flex gap-6">
                   {/* Image */}
@@ -503,87 +523,98 @@ export default function ProductsPage() {
                   </div>
                 </div>
               )}
-            </div>
-            <div className="px-7 pb-6 pt-4 border-t border-gray-100 flex justify-end">
-              <button onClick={() => setDetailId(null)} className="px-5 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">Close</button>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* ══════════════ PRODUCT FORM MODAL ══════════════ */}
       {productModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center py-8 overflow-y-auto px-4 mt-40">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
-            <div className="px-7 pt-6 pb-5 border-b border-gray-100 flex justify-between items-start">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">{productEditId ? "Edit Product" : "New Product"}</h2>
-                <p className="text-sm text-gray-400 mt-0.5">Stock & prices auto-calculated from warehouse</p>
-              </div>
-              <button onClick={() => setProductModal(false)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50">✕</button>
+        <Modal
+          open
+          onClose={() => setProductModal(false)}
+          title={productEditId ? "Edit Product" : "New Product"}
+          subtitle="Stock & prices auto-calculated from warehouse"
+          maxWidth="lg"
+          footer={
+            <div className="flex justify-end gap-3">
+              <SecondaryButton onClick={() => setProductModal(false)}>Cancel</SecondaryButton>
+              <PrimaryButton
+                onClick={handleSaveProduct}
+                disabled={createProduct.isPending || updateProduct.isPending || productEditLoading}
+              >
+                {createProduct.isPending || updateProduct.isPending ? "Saving..." : productEditId ? "Update" : "Save Product"}
+              </PrimaryButton>
             </div>
-
-            <div className="px-7 py-6 space-y-4">
-              {(createProduct.isError || updateProduct.isError) && (
-                <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
-                  {((createProduct.error || updateProduct.error) as any)?.message ?? "Failed to save"}
-                </div>
+          }
+        >
+          {productEditLoading ? (
+            <div className="text-center py-12 text-gray-400 animate-pulse">Loading product details...</div>
+          ) : (
+            <div className="space-y-4">
+              {(productFormError || createProduct.isError || updateProduct.isError) && (
+                <AlertError
+                  message={
+                    productFormError
+                    ?? ((createProduct.error || updateProduct.error) as Error)?.message
+                    ?? "Failed to save"
+                  }
+                />
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Product Name</label>
-                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full text-sm focus:outline-none focus:border-blue-400" placeholder="e.g. Rice Bran Oil 5L" value={productForm.name} onChange={(e) => setField("name", e.target.value)} />
+                  <FormLabel>Product Name</FormLabel>
+                  <FormInput placeholder="e.g. Rice Bran Oil 5L" value={productForm.name} onChange={(e) => setField("name", e.target.value)} />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Brand</label>
-                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full text-sm focus:outline-none focus:border-blue-400" placeholder="Brand ID" type="number" value={productForm.brand} onChange={(e) => setField("brand", e.target.value)} />
+                  <FormLabel>Brand</FormLabel>
+                  <FormSelect value={productForm.brand} onChange={(e) => setField("brand", e.target.value)}>
+                    <option value="">Select brand...</option>
+                    {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </FormSelect>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Category</label>
-                  <select className="border border-gray-200 rounded-lg px-3 py-2 w-full text-sm focus:outline-none focus:border-blue-400" value={productForm.category} onChange={(e) => setField("category", e.target.value)}>
+                  <FormLabel>Category</FormLabel>
+                  <FormSelect value={productForm.category} onChange={(e) => setField("category", e.target.value)}>
                     <option value="">Select category...</option>
                     {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
+                  </FormSelect>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Packets / Carton</label>
-                  <input type="number" className="border border-gray-200 rounded-lg px-3 py-2 w-full text-sm focus:outline-none focus:border-blue-400" placeholder="12" value={productForm.packet_per_carton} onChange={(e) => setField("packet_per_carton", e.target.value)} />
+                  <FormLabel>Packets / Carton</FormLabel>
+                  <FormInput type="number" placeholder="12" value={productForm.packet_per_carton} onChange={(e) => setField("packet_per_carton", e.target.value)} />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Weight</label>
-                  <input type="number" className="border border-gray-200 rounded-lg px-3 py-2 w-full text-sm focus:outline-none focus:border-blue-400" placeholder="500" value={productForm.weight} onChange={(e) => setField("weight", e.target.value)} />
+                  <FormLabel>Weight</FormLabel>
+                  <FormInput type="number" placeholder="500" value={productForm.weight} onChange={(e) => setField("weight", e.target.value)} />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Unit</label>
-                  <select className="border border-gray-200 rounded-lg px-3 py-2 w-full text-sm focus:outline-none focus:border-blue-400" value={productForm.unit} onChange={(e) => setField("unit", e.target.value as any)}>
+                  <FormLabel>Unit</FormLabel>
+                  <FormSelect value={productForm.unit} onChange={(e) => setField("unit", e.target.value as ProductFormData["unit"])}>
                     {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
-                  </select>
+                  </FormSelect>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Discount Type</label>
-                  <select className="border border-gray-200 rounded-lg px-3 py-2 w-full text-sm focus:outline-none focus:border-blue-400" value={productForm.discount_type} onChange={(e) => setField("discount_type", e.target.value as any)}>
+                  <FormLabel>Discount Type</FormLabel>
+                  <FormSelect value={productForm.discount_type} onChange={(e) => setField("discount_type", e.target.value as ProductFormData["discount_type"])}>
                     <option value="percentage">Percentage</option>
                     <option value="flat">Flat</option>
-                  </select>
+                  </FormSelect>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">
-                    Discount {productForm.discount_type === "percentage" ? "(%)" : "(৳)"}
-                  </label>
-                  <input type="number" className="border border-gray-200 rounded-lg px-3 py-2 w-full text-sm focus:outline-none focus:border-blue-400" placeholder="0" value={productForm.discount} onChange={(e) => setField("discount", e.target.value)} />
+                  <FormLabel>Discount {productForm.discount_type === "percentage" ? "(%)" : "(৳)"}</FormLabel>
+                  <FormInput type="number" placeholder="0" value={productForm.discount} onChange={(e) => setField("discount", e.target.value)} />
                 </div>
 
                 <div className="col-span-2">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Description</label>
-                  <textarea rows={2} className="border border-gray-200 rounded-lg px-3 py-2 w-full text-sm focus:outline-none focus:border-blue-400 resize-none" placeholder="Optional description..." value={productForm.description} onChange={(e) => setField("description", e.target.value)} />
+                  <FormLabel>Description</FormLabel>
+                  <FormTextarea rows={2} placeholder="Optional description..." value={productForm.description} onChange={(e) => setField("description", e.target.value)} />
                 </div>
 
                 <div className="col-span-2">
@@ -591,24 +622,17 @@ export default function ProductsPage() {
                 </div>
 
                 <div className="col-span-2 flex items-center gap-3">
-                  <input type="checkbox" id="manual_entry" checked={productForm.manual_entry} onChange={(e) => setField("manual_entry", e.target.checked)} className="w-4 h-4 rounded border-gray-300 text-blue-600" />
-                  <label htmlFor="manual_entry" className="text-sm text-gray-600 cursor-pointer">Manual entry (bypass warehouse stock calculation)</label>
+                  <input type="checkbox" id="manual_entry" checked={productForm.manual_entry} onChange={(e) => setField("manual_entry", e.target.checked)} className="w-4 h-4 rounded border-gray-300 text-primary" />
+                  <label htmlFor="manual_entry" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">Manual entry (bypass warehouse stock calculation)</label>
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-xs text-blue-700">
+              <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 text-xs text-primary">
                 <strong>stocked_quantity</strong>, <strong>sale_price</strong>, <strong>purchase_price</strong> and <strong>packet_price</strong> are computed from warehouse items. Use ↻ Recalc on the detail view to refresh.
               </div>
             </div>
-
-            <div className="px-7 pb-6 pt-4 border-t border-gray-100 flex justify-end gap-3">
-              <button onClick={() => setProductModal(false)} className="px-5 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSaveProduct} disabled={createProduct.isPending || updateProduct.isPending} className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg disabled:opacity-60 hover:bg-blue-700">
-                {createProduct.isPending || updateProduct.isPending ? "Saving..." : productEditId ? "Update" : "Save Product"}
-              </button>
-            </div>
-          </div>
-        </div>
+          )}
+        </Modal>
       )}
 
       {/* ══════════════ CATEGORY FORM MODAL ══════════════ */}
@@ -647,10 +671,20 @@ export default function ProductsPage() {
 
       {/* ══════════════ DELETE CONFIRMS ══════════════ */}
       {productDeleteId !== null && (
-        <DeleteModal label="product" onConfirm={async () => { await deleteProduct.mutateAsync(productDeleteId); setProductDeleteId(null); }} onClose={() => setProductDeleteId(null)} />
+        <DeleteModal
+          label="product"
+          loading={deleteProduct.isPending}
+          onConfirm={async () => { await deleteProduct.mutateAsync(productDeleteId); setProductDeleteId(null); }}
+          onClose={() => setProductDeleteId(null)}
+        />
       )}
       {catDeleteId !== null && (
-        <DeleteModal label="category" onConfirm={async () => { await deleteCategory.mutateAsync(catDeleteId); setCatDeleteId(null); }} onClose={() => setCatDeleteId(null)} />
+        <DeleteModal
+          label="category"
+          loading={deleteCategory.isPending}
+          onConfirm={async () => { await deleteCategory.mutateAsync(catDeleteId); setCatDeleteId(null); }}
+          onClose={() => setCatDeleteId(null)}
+        />
       )}
     </>
   );

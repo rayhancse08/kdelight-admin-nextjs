@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { Pagination } from "@/components/inventory/pagination";
 import { apiFetch } from "@/lib/apiFetch";
 import { Brand, BrandFormData } from "@/types/brand";
 
@@ -231,24 +232,7 @@ export default function BrandPage() {
               </tbody>
             </table>
           </div>
-          {pages > 1 && (
-            <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-xs text-gray-400">Page {page} of {pages}</span>
-              <div className="flex gap-1">
-                {Array.from({ length: Math.min(pages, 5) }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => setPage(n)}
-                    className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
-                      n === page ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-100"
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <Pagination page={page} pages={pages} onChange={setPage} />
         </div>
       )}
 

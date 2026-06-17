@@ -1,20 +1,9 @@
+import { apiPath } from "./api-config";
+import { apiFetch } from "./apiFetch";
+
 export async function loginUser(email, password) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/login/`, {
+  return apiFetch(apiPath("login"), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email,
-      password,
-    }),
+    body: JSON.stringify({ email, password }),
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error || "Login failed");
-  }
-
-  return data;
 }

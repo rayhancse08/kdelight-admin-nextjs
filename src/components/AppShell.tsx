@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const publicRoutes = ["/login"];
-  const isPublic = publicRoutes.includes(pathname);
+  const isPublic = pathname != null && publicRoutes.includes(pathname);
 
   useEffect(() => {
     if (loading) return;
