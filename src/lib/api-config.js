@@ -1,16 +1,15 @@
 /**
- * API URL helpers
- *
- * Browser → /django/* (Route Handler proxies to NEXT_PUBLIC_API_URL/api/*)
- * Server  → full backend URL with Django trailing slash
+ * All API calls go directly to NEXT_PUBLIC_API_URL (Django REST API).
+ * Example: https://kdelight.info/api/login/
  */
 
 export function getBackendRoot() {
-  return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_API_URL ?? "https://kdelight.info").replace(/\/$/, "");
 }
 
-/** Proxy prefix — must match src/app/django/[...path]/route.ts */
-export const PROXY_PREFIX = "/django";
+export function getApiBase() {
+  return `${getBackendRoot()}/api`;
+}
 
 /** Django APPEND_SLASH */
 export function ensureTrailingSlash(url) {
@@ -24,60 +23,36 @@ export function ensureTrailingSlash(url) {
   return url;
 }
 
-export function toProxyPath(pathname) {
-  return pathname.replace(/\/+$/, "") || PROXY_PREFIX;
-}
-
-export function getApiBase() {
-  if (typeof window !== "undefined") return PROXY_PREFIX;
-  return `${getBackendRoot()}/api`;
-}
-
-/** Build API URL for fetch */
+/** Build full API URL, e.g. apiPath("login") → https://kdelight.info/api/login/ */
 export function apiPath(segment) {
   const base = getApiBase().replace(/\/$/, "");
   const path = segment.replace(/^\//, "").replace(/\/$/, "");
   const full = `${base}/${path}`;
-  if (typeof window !== "undefined") {
-    const q = full.includes("?") ? full.slice(full.indexOf("?")) : "";
-    const pathname = full.split("?")[0];
-    return toProxyPath(pathname) + q;
-  }
-  return ensureTrailingSlash(full);
+  const q = full.includes("?") ? full.slice(full.indexOf("?")) : "";
+  const pathname = full.split("?")[0];
+  return ensureTrailingSlash(pathname) + q;
 }
 
-/** Normalize URL before fetch — browser always uses /django proxy paths */
+/** Normalize any API URL to the full backend address */
 export function resolveApiUrl(url) {
   const str = String(url);
   const backend = getBackendRoot();
 
-  if (typeof window !== "undefined") {
-    try {
-      const parsed = new URL(str, window.location.origin);
-      let { pathname, search, hash } = parsed;
-
-      // https://kdelight.info/api/login/ → /django/login
-      if (!str.startsWith("/") && str.startsWith(backend) && pathname.startsWith("/api")) {
-        const sub = pathname.replace(/^\/api\/?/, "");
-        return toProxyPath(`${PROXY_PREFIX}/${sub}`) + search + hash;
-      }
-
-      // /api/login or /django/login
-      if (pathname.startsWith("/api")) {
-        const sub = pathname.replace(/^\/api\/?/, "");
-        return toProxyPath(`${PROXY_PREFIX}/${sub}`) + search + hash;
-      }
-
-      if (pathname.startsWith(PROXY_PREFIX)) {
-        return toProxyPath(pathname) + search + hash;
-      }
-    } catch {
-      // fall through
-    }
-  }
-
   if (!process.env.NEXT_PUBLIC_API_URL && str.includes("undefined")) {
     throw new Error("NEXT_PUBLIC_API_URL is not set in .env");
+  }
+
+  try {
+    const origin = typeof window !== "undefined" ? window.location.origin : backend;
+    const parsed = new URL(str, origin);
+    const { pathname, search, hash } = parsed;
+
+    if (pathname.startsWith("/api") || str.startsWith(backend)) {
+      const apiPathname = pathname.startsWith("/api") ? pathname : parsed.pathname;
+      return ensureTrailingSlash(`${backend}${apiPathname}`) + search + hash;
+    }
+  } catch {
+    // fall through
   }
 
   return ensureTrailingSlash(str);

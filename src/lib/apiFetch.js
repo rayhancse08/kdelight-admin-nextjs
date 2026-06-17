@@ -37,7 +37,6 @@ export async function apiFetch(url, options = {}) {
     console.debug("[apiFetch]", options.method ?? "GET", resolvedUrl);
   }
 
-  // Drop null/undefined Authorization from callers (e.g. Bearer null)
   const callerHeaders = { ...(options.headers || {}) };
   if (callerHeaders.Authorization?.includes("null") || callerHeaders.Authorization?.includes("undefined")) {
     delete callerHeaders.Authorization;
@@ -64,20 +63,19 @@ export async function apiFetch(url, options = {}) {
 
     try {
       return JSON.parse(text);
-    } catch (err) {
+    } catch {
       if (text.trimStart().startsWith("<")) {
-        throw new Error("API returned HTML instead of JSON. Restart the dev server after config changes.");
+        throw new Error("API returned HTML instead of JSON.");
       }
       console.error("Invalid JSON:", text);
       throw new Error("Invalid JSON response");
     }
   } catch (error) {
     if (error instanceof TypeError && error.message === "Failed to fetch") {
-      const backend = getBackendRoot();
       const hint =
         typeof window !== "undefined"
-          ? `Could not reach the API (${resolvedUrl} → ${backend}). Restart Next.js after .env changes.`
-          : `Could not reach the API at ${resolvedUrl}. Is the backend running?`;
+          ? `Could not reach ${resolvedUrl}. Add ${window.location.origin} to Django CORS_ALLOWED_ORIGINS.`
+          : `Could not reach ${resolvedUrl}. Is ${getBackendRoot()} running?`;
       console.error("Fetch failed:", hint, error);
       throw new Error(hint);
     }
